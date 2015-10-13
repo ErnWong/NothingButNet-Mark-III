@@ -57,7 +57,6 @@ void portalReady(Portal*);
 
 Pigeon *pigeonInit(PigeonIn, PigeonOut, PigeonMillis);
 Portal *pigeonCreatePortal(Pigeon*, const char id[PIGEON_KEYSIZE]);
-void pigeonReady(Pigeon*);
 
 // }}}
 

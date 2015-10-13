@@ -48,6 +48,9 @@ FlywheelSetup
     unsigned int priorityActive;
     unsigned long frameDelayReady;
     unsigned long frameDelayActive;
+    float readyErrorInterval;
+    float readyDerivativeInterval;
+    int readyCheckCycle;
 }
 FlywheelSetup;
 

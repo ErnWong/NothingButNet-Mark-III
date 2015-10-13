@@ -14,6 +14,10 @@ typedef struct PortalEntry PortalEntry;
 
 // }}}
 
+
+
+// {{{ Structs
+
 struct PortalEntry
 {
     char key[PIGEON_KEYSIZE];
@@ -54,6 +58,9 @@ struct Pigeon
     PigeonMillis millis;
 };
 
+// }}}
+
+
 
 // {{{ Private functions - forward declarations
 
@@ -64,6 +71,7 @@ static PortalEntry ** findEntry(const char key[PIGEON_KEYSIZE], PortalEntry**);
 static Portal ** findPortal(const char id[PIGEON_KEYSIZE], Portal**);
 
 // }}}
+
 
 
 // {{{ Public pigeon methods
@@ -166,6 +174,8 @@ portalReady(Portal * portal)
 }
 
 // }}}
+
+
 
 // {{{ Private methods
 
