@@ -34,6 +34,9 @@
 
 #include "main.h"
 
+Flywheel flywheelUpper;
+Flywheel flywheelLower;
+
 /*
  * Runs pre-initialization code. This function will be started in kernel mode one time while the
  * VEX Cortex is starting up. As the scheduler is still paused, most API functions will fail.
@@ -59,4 +62,14 @@ void initializeIO() {
  * can be implemented in this task if desired.
  */
 void initialize() {
+    FlywheelSetup flywheelLowerSetup =
+    {
+    };
+    flywheelLower = flywheelInit(flywheelLowerSetup);
+
+    FlywheelSetup flywheelUpperSetup =
+    {
+        // TODO: use old values
+    };
+    flywheelUpper = flywheelInit(flywheelUpperSetup);
 }

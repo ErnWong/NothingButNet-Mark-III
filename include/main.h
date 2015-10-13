@@ -45,7 +45,6 @@
 
 #include <API.h>
 
-#include "utils.h"
 #include "flywheel.h"
 
 // Allow usage of this file in C++ programs
@@ -114,6 +113,11 @@ void initialize();
  * This task should never exit; it should end with some kind of infinite loop, even if empty.
  */
 void operatorControl();
+
+
+// Global objects
+extern Flywheel flywheelUpper;
+extern Flywheel flywheelLower;
 
 // End C++ export structure
 #ifdef __cplusplus
