@@ -44,7 +44,6 @@
 #define MAIN_H_
 
 #include <API.h>
-
 #include "flywheel.h"
 
 // Allow usage of this file in C++ programs
@@ -114,10 +113,8 @@ void initialize();
  */
 void operatorControl();
 
-
-// Global objects
-extern Flywheel flywheelUpper;
-extern Flywheel flywheelLower;
+extern Flywheel *flywheel;
+//Flywheel *flywheel = NULL;
 
 // End C++ export structure
 #ifdef __cplusplus

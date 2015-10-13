@@ -33,6 +33,13 @@
  */
 
 #include "main.h"
+#include "com-input.h"
+#include "flywheel.h"
+#include "utils.h"
+#include <string.h>
+
+void streamOutTask(void *args);
+void measureSteadyStateCommands();
 
 /*
  * Runs the user operator control code. This function will be started in its own task with the
@@ -51,9 +58,65 @@
  *
  * This task should never exit; it should end with some kind of infinite loop, even if empty.
  */
-void operatorControl() {
 
-	while (1) {
-		delay(20);
+void operatorControl()
+{
+	flywheelRun(flywheel);
+	stdinHandlerRun();
+
+	taskCreate(streamOutTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+
+	measureSteadyStateCommands();
+
+	while (1)
+	{
+		delay(1000);
+	}
+}
+
+void streamOutTask(void *args)
+{
+	while (1)
+	{
+		printf(
+			"Data %f %f %f %f %f %f \n",
+			flywheel->microTime / 1000000.0f,
+			flywheel->measuredRaw,
+			flywheel->measured,
+			flywheel->target,
+			flywheel->error,
+			flywheel->action
+		);
+		delay(200); // 80 seems good, 200 for other measuring because of the feels.
+	}
+}
+
+void measureSteadyStateCommands()
+{
+	for (int target = 100; target < 2000; target += 100)
+	{
+		flywheelSet(flywheel, (float)target);
+		waitUntilFlywheelReady(flywheel, -1);
+		float commandSum = 0;
+		float commandSquaredSum = 0;
+		for (int i = 0; i < 100; i++)
+		{
+			if (!flywheel->ready)
+			{
+				waitUntilFlywheelReady(flywheel, -1);
+				i = 0;
+			}
+			commandSum += flywheel->action;
+			commandSquaredSum += flywheel->action * flywheel->action;
+			waitUntilFlywheelStep(flywheel, -1);
+		}
+		float commandMean = commandSum / 100;
+		float commandVariance = commandSquaredSum / 100 - commandMean * commandMean;
+		printf(
+			"Steady-State %f %f %f",
+			(float) target,
+			commandMean,
+			commandVariance
+		);
 	}
 }

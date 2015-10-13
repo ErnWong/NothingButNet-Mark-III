@@ -33,9 +33,9 @@
  */
 
 #include "main.h"
+#include "flywheel.h"
 
-Flywheel flywheelUpper;
-Flywheel flywheelLower;
+Flywheel *flywheel;
 
 /*
  * Runs pre-initialization code. This function will be started in kernel mode one time while the
@@ -61,15 +61,24 @@ void initializeIO() {
  * will not start. An autonomous mode selection menu like the pre_auton() in other environments
  * can be implemented in this task if desired.
  */
-void initialize() {
-    FlywheelSetup flywheelLowerSetup =
-    {
-    };
-    flywheelLower = flywheelInit(flywheelLowerSetup);
-
-    FlywheelSetup flywheelUpperSetup =
-    {
-        // TODO: use old values
-    };
-    flywheelUpper = flywheelInit(flywheelUpperSetup);
+void initialize()
+{
+	FlywheelSetup flywheelSetup =
+	{
+		.gearing = 5.0f,
+		.pidKp = 0.0f,
+		.pidKi = 0.0f,
+		.pidKd = 0.0f,
+		.tbhGain = 0.0f,
+		.tbhApprox = 20,
+		.bangBangValue = 20,
+		.smoothing = 0.2f,
+		.encoderTicksPerRevolution = 360,
+		.encoderPortTop = 1,
+		.encoderPortBottom = 2,
+		.encoderReverse = false,
+		.motorChannels = { 1, 2, 3 },
+		.motorReversed = { true, true, false }
+	};
+	flywheel = flywheelInit(flywheelSetup);
 }
