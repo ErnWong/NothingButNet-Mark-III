@@ -66,7 +66,7 @@ void operatorControl()
 
 	taskCreate(streamOutTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
 
-	measureSteadyStateCommands();
+	//measureSteadyStateCommands();
 
 	while (1)
 	{
