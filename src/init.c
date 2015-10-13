@@ -77,7 +77,7 @@ void initialize()
 		.encoderPortTop = 1,
 		.encoderPortBottom = 2,
 		.encoderReverse = false,
-		.motorChannels = { 1, 2, 3 },
+		.motorChannels = { 2, 3, 4 },
 		.motorReversed = { true, true, false }
 	};
 	flywheel = flywheelInit(flywheelSetup);

@@ -41,6 +41,33 @@
 void streamOutTask(void *args);
 void measureSteadyStateCommands();
 
+Flywheel *flywheel;
+typedef enum DriveStyle
+{
+    TANK,
+    ARCADE
+}
+DriveStyle;
+
+DriveStyle driveStyle = TANK;
+
+void updateDrive()
+{
+    switch (driveStyle)
+    {
+    case TANK:
+        // right
+        motorSet(7, joystickGetAnalog(1, 2));
+        // left
+        motorSet(8, joystickGetAnalog(1, 3));
+        break;
+    case ARCADE:
+        motorSet(7, joystickGetAnalog(1, 2) - joystickGetAnalog(1, 1));
+        motorSet(8, joystickGetAnalog(1, 2) + joystickGetAnalog(1, 1));
+        break;
+    }
+}
+
 /*
  * Runs the user operator control code. This function will be started in its own task with the
  * default priority and stack size whenever the robot is enabled via the Field Management System
@@ -70,7 +97,8 @@ void operatorControl()
 
 	while (1)
 	{
-		delay(1000);
+        updateDrive();
+		delay(50);
 	}
 }
 
