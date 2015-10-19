@@ -1,3 +1,8 @@
+#if 0
+
+// {{{ Disabled for now
+
+
 #include <API.h>
 
 #include "motor-model.h"
@@ -234,3 +239,8 @@ int getCommandSafeLimitBackward(SmartMotor *m, float batteryVoltage)
 	}
 	return command;
 }
+
+
+// }}}
+
+#endif
