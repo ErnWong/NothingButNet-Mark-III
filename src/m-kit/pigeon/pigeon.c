@@ -203,11 +203,11 @@ writeMessage(Pigeon *pigeon, const char id[PIGEON_KEYSIZE], const char key[PIGEO
     // ensure null terminated
     char safeId[PIGEON_KEYSIZE];
     strncpy(safeId, id, PIGEON_KEYSIZE);
-    safeId[PIGEON_MESSAGESIZE - 1] = '\0';
+    safeId[PIGEON_KEYSIZE - 1] = '\0';
 
     char safeKey[PIGEON_KEYSIZE];
     strncpy(safeKey, key, PIGEON_KEYSIZE);
-    safeKey[PIGEON_MESSAGESIZE - 1] = '\0';
+    safeKey[PIGEON_KEYSIZE - 1] = '\0';
 
     char safeMessage[PIGEON_MESSAGESIZE];
     strncpy(safeMessage, message, PIGEON_MESSAGESIZE);
@@ -222,8 +222,9 @@ writeMessage(Pigeon *pigeon, const char id[PIGEON_KEYSIZE], const char key[PIGEO
     {
         snprintf(path, 18, "%s.%s", id, key);
     }
-    
-    snprintf(str, 110, "[%08u|%-17s] %s", pigeon->millis(), path, message);
+
+    char str[110];
+    snprintf(str, 110, "[%08u|%-17s] %s", (unsigned int)pigeon->millis(), path, message);
     pigeon->puts(str);
 }
 
