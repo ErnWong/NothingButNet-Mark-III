@@ -117,6 +117,7 @@ pigeonCreatePortal(Pigeon * pigeon, const char id[PIGEON_KEYSIZE])
 // }}}
 
 
+
 // {{{ Public portal methods
 
 void
@@ -279,6 +280,11 @@ findEntry(const char key[PIGEON_KEYSIZE], PortalEntry ** topEntry)
 // }}}
 
 
+
+#if 0
+
+// {{{ Disabled playground code
+
 //pigeonCreate
 
 //Example
@@ -341,3 +347,7 @@ example()
 
     
 }
+
+// }}}
+
+#endif
