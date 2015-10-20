@@ -80,7 +80,7 @@ Pigeon *
 pigeonInit(PigeonIn getter, PigeonOut putter, PigeonMillis clock)
 {
     Pigeon * pigeon = malloc(sizeof(Pigeon));
-    
+
     pigeon->gets = getter;
     pigeon->puts = putter;
     pigeon->millis = clock;
@@ -330,7 +330,7 @@ void
 example()
 {
     Pigeon * pigeon = pigeonInit(pigeonIn, pigeonOut);
-    
+
     Portal * portal = pigeonCreatePortal(pigeon, "Flywhe~1");
     //portalAdd(portal, 'target', targetHandler);
 
@@ -346,7 +346,6 @@ example()
     };
     portalAdd(portal, targetSetup);
 
-    
 }
 
 // }}}
