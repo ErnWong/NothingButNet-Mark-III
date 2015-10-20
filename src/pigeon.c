@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stddef.h>
 
+#include "utils.h"
+
 
 // {{{ Private structs/typedefs - foward Declarations
 
@@ -56,6 +58,7 @@ struct Pigeon
     PigeonIn gets;
     PigeonOut puts;
     PigeonMillis millis;
+    TaskHandle task;
 };
 
 // }}}
@@ -85,6 +88,7 @@ pigeonInit(PigeonIn getter, PigeonOut putter, PigeonMillis clock)
     pigeon->puts = putter;
     pigeon->millis = clock;
 
+    pigeon->task = NULL;
     pigeon->topPortal = NULL;
 
     return pigeon;
@@ -181,12 +185,46 @@ portalReady(Portal * portal)
 // {{{ Private methods
 
 static void
+task(void * pigeonData)
+{
+    Pigeon * pigeon = pigeonData;
+    while (true)
+    {
+        char input[PIGEON_INPUTSIZE];
+        fgets(input, PIGEON_INPUTSIZE, stdin);
+
+        trimSpaces(input);
+
+        char * path = strtok(input, " ");
+        char * message = strtok(NULL, "");
+
+        char * portalId = strtok(path, ".");
+        char * entryKey = strtok(NULL, ".");
+
+        trimSpaces(portalId);
+        trimSpaces(entryKey);
+
+        Portal ** portalLocation = findPortal(portalId, &pigeon->topPortal);
+        if (*portalLocation == NULL) return;
+        Portal * portal = *portalLocation;
+
+        PortalEntry ** entryLocation = findEntry(entryKey, &portal->topEntry);
+
+        if (*entryLocation == NULL) return;
+        PortalEntry * entry = *entryLocation;
+
+        entry->handler(entry->target, message);
+
+        delay(40);
+    }
+}
+
+static void
 checkReady(Pigeon * pigeon)
 {
     if (isPortalBranchReady(pigeon->topPortal))
     {
-        // Start task here, a task that loops and pigeon->gets(),
-        // and passes incomming messages to appropriate handlers
+       pigeon->task = taskCreate(task, TASK_DEFAULT_STACK_SIZE, pigeon, TASK_PRIORITY_DEFAULT);
     }
 }
 
@@ -225,8 +263,8 @@ writeMessage(Pigeon *pigeon, const char id[PIGEON_KEYSIZE], const char key[PIGEO
         snprintf(path, 18, "%s.%s", id, key);
     }
 
-    char str[110];
-    snprintf(str, 110, "[%08u|%-17s] %s", (unsigned int)pigeon->millis(), path, message);
+    char str[PIGEON_LINESIZE];
+    snprintf(str, PIGEON_LINESIZE, "[%08u|%-17s] %s", (unsigned int)pigeon->millis(), path, message);
     pigeon->puts(str);
 }
 
@@ -239,8 +277,7 @@ findPortal(const char id[PIGEON_KEYSIZE], Portal ** topPortal)
         int comparison = strncmp(id, (*visiting)->id, PIGEON_KEYSIZE);
         if (comparison == 0)
         {
-            // overwrite
-            *visiting = NULL;
+            return visiting;
         }
         else if (comparison < 0)
         {
@@ -263,8 +300,7 @@ findEntry(const char key[PIGEON_KEYSIZE], PortalEntry ** topEntry)
         int comparison = strncmp(key, (*visiting)->key, PIGEON_KEYSIZE);
         if (comparison == 0)
         {
-            // overwrite
-            *visiting = NULL;
+            return visiting;
         }
         else if (comparison < 0)
         {

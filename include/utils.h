@@ -13,7 +13,9 @@ extern "C" {
 //
 float timeUpdate(unsigned long *microTime);
 
-int signOf(int x);
+int signOf(int);
+
+char * trimSpaces(char *);
 
 // TODO: Move these ticks per rev to somewhere meaningful.
 

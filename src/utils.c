@@ -1,6 +1,8 @@
 #include "utils.h"
 
 #include <API.h>
+#include <ctype.h>
+#include <string.h>
 
 
 
@@ -22,4 +24,25 @@ float timeUpdate(unsigned long *microTime)
 int signOf(int x)
 {
 	return (x > 0) - (x < 0);
+}
+
+
+// http://stackoverflow.com/questions/122616/how-do-i-trim-leading-trailing-whitespace-in-a-standard-way
+
+char *
+trimSpaces(char * str)
+{
+    // Trim leading spaces
+    while (isspace((unsigned char)*str)) str++;
+
+    if (*str == '\0') return str;
+
+    // Trim trailing spaces
+    char *end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) end--;
+
+    // Write new null terminator
+    *(end + 1) = '\0';
+
+    return str;
 }
