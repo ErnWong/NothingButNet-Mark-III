@@ -190,7 +190,8 @@ checkReady(Pigeon * pigeon)
     }
 }
 
-static bool isPortalBranchReady(Portal * portal)
+static bool
+isPortalBranchReady(Portal * portal)
 {
     if (!portal->ready) return false;
     if (portal->portalLeft && !isPortalBranchReady(portal->portalLeft)) return false;
