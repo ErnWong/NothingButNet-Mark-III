@@ -1,5 +1,5 @@
-#ifndef SERIAL_H_
-#define SERIAL_H_
+#ifndef PIGEON_H_
+#define PIGEON_H_
 
 #include <stdbool.h>
 
@@ -9,7 +9,7 @@ extern "C" {
 
 
 
-// {{{ Definitions
+// Definitions {{{
 
 #define PIGEON_KEYSIZE 9
 #define PIGEON_MESSAGESIZE 81
@@ -21,7 +21,7 @@ extern "C" {
 
 
 
-// {{{ Typedefs
+// Typedefs {{{
 
 typedef void (*PortalKeyHandler)(void * target, char message[PIGEON_MESSAGESIZE]);
 
@@ -50,7 +50,7 @@ PortalKeySetup;
 
 
 
-// {{{ Methods
+// Methods {{{
 
 Portal *portalInit(char id[PIGEON_KEYSIZE]);
 //void portalAdd(Portal, char key[PIGEON_KEYSIZE], PortalKeyHandler, PortalLoudness);

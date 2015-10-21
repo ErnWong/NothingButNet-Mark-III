@@ -9,7 +9,7 @@ extern "C" {
 
 
 
-// {{{ Typedefs
+// Typedefs {{{
 
 struct Flywheel;
 typedef struct Flywheel Flywheel;
@@ -40,7 +40,7 @@ FlywheelSetup
     FlywheelController controllerType;
     float encoderTicksPerRevolution;    // Number of ticks each time the encoder completes one revolution
     unsigned char encoderPortTop;       // Digital port number where the encoder's top wire is connected.
-    unsigned char encoderPortBottom;    // Digital port number where the encoder's bottom wire is connected. 
+    unsigned char encoderPortBottom;    // Digital port number where the encoder's bottom wire is connected.
     FlywheelMotorSetter motorSetters[8];
     void * motorTargets[8];
     bool encoderReverse;                // Whether the encoder values should be reversed.
@@ -58,7 +58,7 @@ FlywheelSetup;
 
 
 
-// {{{ Methods
+// Methods {{{
 
 Flywheel *flywheelInit(FlywheelSetup setup);
 

@@ -7,7 +7,7 @@
 
 
 
-// {{{ Definitions
+// Definitions {{{
 
 // TODO: tune success intervals, priorities, and checking period.
 // TODO: remove these after migrated to struct.
@@ -29,7 +29,7 @@
 
 
 
-// {{{ Typedefs
+// Typedefs {{{
 
 struct Flywheel
 {
@@ -87,7 +87,7 @@ struct Flywheel
 
 
 
-// {{{ Private functions, forward declarations.
+// Private functions, forward declarations. {{{
 
 static void task(void *flywheelPointer);
 static void update(Flywheel *flywheel);
@@ -106,7 +106,7 @@ static void readify(Flywheel *flywheel);
 
 
 
-// {{{ Public methods
+// Public methods {{{
 
 Flywheel
 *flywheelInit(FlywheelSetup setup)
@@ -261,9 +261,9 @@ waitUntilFlywheelReady(Flywheel *flywheel, const unsigned long blockTime)
 
 
 
-// {{{ Private functions
+// Private functions {{{
 
-static void 
+static void
 task(void *flywheelPointer)
 {
     Flywheel *flywheel = flywheelPointer;
