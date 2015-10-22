@@ -6,121 +6,121 @@
 
 
 typedef struct
-EncoderArgs
+EncoderShim
 {
     Encoder encoder;
     int reading;
     unsigned long microTime;
 }
-EncoderArgs;
+EncoderShim;
 
 float
-encoderGetter(void * args)
+encoderGetter(EncoderHandle handle)
 {
-    EncoderArgs * encoderArgs = args;
+    EncoderShim * shim = handle;
 
-    float timeChange = timeUpdate(&encoderArgs->microTime);
-    int reading = encoderGet(encoderArgs->encoder);
-    int ticks = reading - encoderArgs->reading;
+    float timeChange = timeUpdate(&shim->microTime);
+    int reading = encoderGet(shim->encoder);
+    int ticks = reading - shim->reading;
 
-    encoderArgs->reading = reading;
+    shim->reading = reading;
     return ticks / ENCODER_TICKS_PER_REV / timeChange;
 }
 
 void
-encoderResetter(void * args)
+encoderResetter(EncoderHandle handle)
 {
-    EncoderArgs * encoderArgs = args;
-    encoderReset(encoderArgs->encoder);
+    EncoderShim * shim = handle;
+    encoderReset(shim->encoder);
 }
 
 void *
-encoderGetArgs(Encoder encoder)
+encoderGetHandle(Encoder encoder)
 {
-    EncoderArgs * args = malloc(sizeof(EncoderArgs));
-    args->encoder = encoder;
-    args->reading = encoderGet(encoder);
-    args->microTime = micros();
-    return args;
+    EncoderShim * shim = malloc(sizeof(EncoderHandle));
+    shim->encoder = encoder;
+    shim->reading = encoderGet(encoder);
+    shim->microTime = micros();
+    return shim;
 }
 
 typedef struct
-ImeArgs
+ImeShim
 {
     unsigned char address;
     float gearing;
 }
-ImeArgs;
+ImeShim;
 
 float
-imeGetter(void * args)
+imeGetter(EncoderHandle handle)
 {
-    ImeArgs * imeArgs = args;
+    ImeShim * shim = handle;
     int rpm = 0;
     int i = 2;
     while (i > 0)
     {
-        bool success = imeGetVelocity(imeArgs->address, &rpm);
+        bool success = imeGetVelocity(shim->address, &rpm);
         if (success) break;
         i--;
     }
-    return ((float)rpm) / imeArgs->gearing;
+    return ((float)rpm) / shim->gearing;
 }
 
 void
-imeResetter(void * args)
+imeResetter(EncoderHandle handle)
 {
-    ImeArgs * imeArgs = args;
+    ImeShim * shim = handle;
     int i = 2;
     while (i > 0)
     {
-        bool success = imeReset(imeArgs->address);
+        bool success = imeReset(shim->address);
         if (success) break;
         i--;
     }
 }
 
 void *
-imeGetArgs(unsigned char address, MotorType type)
+imeGetHandle(unsigned char address, MotorType type)
 {
-    ImeArgs * args = malloc(sizeof(ImeArgs));
-    args->address = address;
+    ImeShim * shim = malloc(sizeof(ImeShim));
+    shim->address = address;
     switch (type)
     {
     case MOTOR_TYPE_269:
-        args->gearing = IME_269_GEARING;
+        shim->gearing = IME_269_GEARING;
         break;
     case MOTOR_TYPE_393_TORQUE:
-        args->gearing = IME_393_TORQUE_GEARING;
+        shim->gearing = IME_393_TORQUE_GEARING;
         break;
     case MOTOR_TYPE_393_SPEED:
-        args->gearing = IME_393_SPEED_GEARING;
+        shim->gearing = IME_393_SPEED_GEARING;
         break;
     }
-    return args;
+    return shim;
 }
 
 typedef struct
-MotorArgs
+MotorShim
 {
     unsigned char channel;
     bool reversed;
 }
-MotorArgs;
+MotorShim;
 
 void
-motorSetter(void * args, int command)
+motorSetter(MotorHandle handle, int command)
 {
-    MotorArgs * motorArgs = args;
-    if (motorArgs->reversed) command *= -1;
-    motorSet(motorArgs->channel, command);
+    MotorShim * shim = handle;
+    if (shim->reversed) command *= -1;
+    motorSet(shim->channel, command);
 }
 
 void *
-motorGetArgs(unsigned char channel, bool reversed)
+motorGetHandle(unsigned char channel, bool reversed)
 {
-    MotorArgs * args = malloc(sizeof(MotorArgs));
-    args->channel = channel;
-    args->reversed = reversed;
-    return args;
+    MotorShim * shim = malloc(sizeof(MotorShim));
+    shim->channel = channel;
+    shim->reversed = reversed;
+    return shim;
 }

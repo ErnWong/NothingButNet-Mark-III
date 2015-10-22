@@ -16,14 +16,17 @@ extern "C" {
 #define IME_393_TORQUE_GEARING 39.2
 #define IME_393_SPEED_GEARING 24.5
 
+typedef void * EncoderHandle;
+typedef void * MotorHandle;
+
 typedef float
-(*EncoderGetter)(void * args);
+(*EncoderGetter)(EncoderHandle handle);
 
 typedef void
-(*EncoderResetter)(void * args);
+(*EncoderResetter)(EncoderHandle handle);
 
 typedef void
-(*MotorSetter)(void * args, int command);
+(*MotorSetter)(MotorHandle handle, int command);
 
 typedef enum
 MotorType
@@ -35,28 +38,28 @@ MotorType
 MotorType;
 
 float
-encoderGetter(void * args);
+encoderGetter(EncoderHandle);
 
 void
-encoderResetter(void * args);
+encoderResetter(EncoderHandle);
 
 void *
-encoderGetArgs(Encoder);
+encoderGetHandle(Encoder);
 
 float
-imeGetter(void * args);
+imeGetter(EncoderHandle);
 
 void
-imeResetter(void * args);
+imeResetter(EncoderHandle);
 
 void *
-imeGetArgs(unsigned char address, MotorType);
+imeGetHandle(unsigned char address, MotorType);
 
 void
-motorSetter(void * args, int command);
+motorSetter(MotorHandle, int command);
 
 void *
-motorGetArgs(unsigned char channel, bool reversed);
+motorGetHandle(unsigned char channel, bool reversed);
 
 
 

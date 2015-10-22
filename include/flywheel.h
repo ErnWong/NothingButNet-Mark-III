@@ -3,8 +3,8 @@
 
 #include <stdbool.h>
 #include "pigeon.h"
+#include "control.h"
 #include "shims.h"
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,21 +33,16 @@ FlywheelSetup
     float gearing;
     float smoothing;
 
-    float pidKp;
-    float pidKi;
-    float pidKd;
-    float tbhGain;
-    float bbValue;
-    float bbAbove;
-    float bbBelow;
-    FlywheelController controllerType;
+    ControlUpdater controlUpdater;
+    ControlResetter controlResetter;
+    void * control;
 
     EncoderGetter encoderGetter;
     EncoderResetter encoderResetter;
-    void * encoderArgs;
+    void * encoder;
 
     MotorSetter motorSetters[8];
-    void * motorArgs[8];
+    void * motors[8];
 
     unsigned int priorityReady;
     unsigned int priorityActive;
@@ -66,20 +61,17 @@ FlywheelSetup;
 
 // Methods {{{
 
-Flywheel *flywheelInit(FlywheelSetup setup);
+Flywheel *
+flywheelInit(FlywheelSetup setup);
 
-void flywheelRun(Flywheel *flywheel);
+void
+flywheelRun(Flywheel *flywheel);
 
-// Sets target RPM
-void flywheelSet(Flywheel *flywheel, float rpm, float estimate);
+void
+flywheelSet(Flywheel *flywheel, float rpm);
 
-void flywheelSetController(Flywheel *flywheel, FlywheelController type);
-void flywheelSetSmoothing(Flywheel *flywheel, float smoothing);
-void flywheelSetPidKp(Flywheel *flywheel, float gain);
-void flywheelSetPidKi(Flywheel *flywheel, float gain);
-void flywheelSetPidKd(Flywheel *flywheel, float gain);
-void flywheelSetTbhGain(Flywheel *flywheel, float gain);
-void waitUntilFlywheelReady(Flywheel *flywheel, const unsigned long blockTime);
+void
+waitUntilFlywheelReady(Flywheel *flywheel, const unsigned long blockTime);
 
 // }}}
 

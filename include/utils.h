@@ -1,6 +1,7 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,7 +14,11 @@ extern "C" {
 //
 float timeUpdate(unsigned long *microTime);
 
-int signOf(int);
+int
+signOf(int);
+
+bool
+isWithin(float x, float size);
 
 char * trimSpaces(char *);
 
