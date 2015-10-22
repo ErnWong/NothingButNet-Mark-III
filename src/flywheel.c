@@ -3,24 +3,10 @@
 #include <API.h>
 #include <string.h>
 #include "utils.h"
-
-
+#include "shims.h"
 
 
 // Definitions {{{
-
-// TODO: tune success intervals, priorities, and checking period.
-// TODO: remove these after migrated to struct.
-//#define FLYWHEEL_READY_ERROR_INTERVAL 1.0f      // The +/- interval for which the error needs to lie to be considered 'ready'.
-//#define FLYWHEEL_READY_DERIVATIVE_INTERVAL 1.0f // The +/- interval for which the measured derivative needs to lie to be considered 'ready'.
-
-//#define FLYWHEEL_ACTIVE_PRIORITY 3              // Priority of the update task during active mode
-//#define FLYWHEEL_READY_PRIORITY 2               // Priority of the update task during ready mode
-
-//#define FLYWHEEL_ACTIVE_DELAY 20                // Delay for each update during active mode
-//#define FLYWHEEL_READY_DELAY 200                // Delay for each update during ready mode
-
-//#define FLYWHEEL_CHECK_READY_PERIOD 20          // Number of updates before rechecking its ready state
 
 #define UNUSED(x) (void)(x)
 
@@ -36,6 +22,7 @@ struct Flywheel
     char id[8];
 
     float target;                       // Target speed in rpm.
+    float estimate;
     float measured;                     // Measured speed in rpm.
     float measuredRaw;
     float derivative;                   // Rate at which the measured speed had changed.
@@ -47,21 +34,21 @@ struct Flywheel
     float lastError;
     bool firstCross;
 
-    int reading;                        // Previous encoder value.
     unsigned long microTime;            // The time in microseconds of the last update.
     float timeChange;                   // The time difference between updates, in seconds.
 
-    float pidKp;                         // Gain proportional constant for integrating controller.
+    // Controller parameters
+    float pidKp;
     float pidKi;
     float pidKd;
     float tbhGain;
-    float tbhApprox;
-    float bangBangValue;
-    float gearing;                      // Ratio of flywheel RPM per encoder RPM.
-    float encoderTicksPerRevolution;    // Number of ticks each time the encoder completes one revolution
-    float smoothing;                    // Amount of smoothing applied to the flywheel RPM, which is the low-pass filter time constant in seconds.
+    float bbValue;
+    float bbAbove;
+    float bbBelow;
+    float gearing;
+    float smoothing;
 
-    bool ready;                         // Whether the controller is in ready mode (true, flywheel at the right speed) or active mode (false), which affects task priority and update rate.
+    bool ready;
     unsigned int priorityReady;
     unsigned int priorityActive;
     unsigned long frameDelay;
@@ -77,9 +64,11 @@ struct Flywheel
 
     Mutex targetMutex;                  // Mutex for updating the target speed.
     TaskHandle task;                    // Handle to the controlling task.
-    Encoder encoder;                    // Encoder used to measure the rpm.
-    FlywheelMotorSetter motorSetters[8];
-    void * motorTargets[8];
+    EncoderGetter encoderGet;
+    EncoderResetter encoderReset;
+    void * encoderArgs;
+    MotorSetter motorSet[8];
+    void * motorArgs[8];
 };
 
 /// }}}
@@ -108,15 +97,15 @@ static void readify(Flywheel *flywheel);
 
 // Public methods {{{
 
-Flywheel
-*flywheelInit(FlywheelSetup setup)
+Flywheel *
+flywheelInit(FlywheelSetup setup)
 {
     Flywheel *flywheel = malloc(sizeof(Flywheel));
 
     strncpy(flywheel->id, setup.id, 8);
 
     flywheel->target = 0.0f;
-    flywheel->measured = 0.0f;
+    flywheel->estimate = 0.0f;
     flywheel->measured = 0.0f;
     flywheel->derivative = 0.0f;
     flywheel->integral = 0.0f;
@@ -127,7 +116,6 @@ Flywheel
     flywheel->lastError = 0.0f;
     flywheel->firstCross = true;
 
-    flywheel->reading = 0;
     flywheel->microTime = micros();
     flywheel->timeChange = 0.0f;
 
@@ -135,10 +123,10 @@ Flywheel
     flywheel->pidKi = setup.pidKi;
     flywheel->pidKd = setup.pidKd;
     flywheel->tbhGain = setup.tbhGain;
-    flywheel->tbhApprox = setup.tbhApprox;
-    flywheel->bangBangValue = setup.bangBangValue;
+    flywheel->bbValue = setup.bbValue;
+    flywheel->bbAbove = setup.bbAbove;
+    flywheel->bbBelow = setup.bbBelow;
     flywheel->gearing = setup.gearing;
-    flywheel->encoderTicksPerRevolution = setup.encoderTicksPerRevolution;
     flywheel->smoothing = setup.smoothing;
 
     flywheel->ready = true;
@@ -157,12 +145,13 @@ Flywheel
 
     flywheel->targetMutex = mutexCreate();
     flywheel->task = NULL;
-    //flywheel->task = taskCreate(task, 1000000, flywheel, FLYWHEEL_READY_PRIORITY);    // TODO: What stack size should be set?
-    flywheel->encoder = encoderInit(setup.encoderPortTop, setup.encoderPortBottom, setup.encoderReverse);
+    flywheel->encoderGet = setup.encoderGetter;
+    flywheel->encoderReset = setup.encoderResetter;
+    flywheel->encoderArgs = setup.encoderArgs;
     for (int i = 0; i < 8; i++)
     {
-        flywheel->motorSetters[i] = setup.motorSetters[i];
-        flywheel->motorTargets[i] = setup.motorTargets[i];
+        flywheel->motorSet[i] = setup.motorSetters[i];
+        flywheel->motorArgs[i] = setup.motorArgs[i];
     }
 
     return flywheel;
@@ -179,26 +168,24 @@ flywheelReset(Flywheel *flywheel)
     flywheel->lastAction = 0.0f;
     flywheel->lastError = 0.0f;
     flywheel->firstCross = true;
-    flywheel->reading = 0;
-    encoderReset(flywheel->encoder);
+    flywheel->encoderReset(flywheel->encoderArgs);
 }
 
 // Sets target RPM.
 void
-flywheelSet(Flywheel *flywheel, float rpm)
+flywheelSet(Flywheel *flywheel, float rpm, float estimate)
 {
     mutexTake(flywheel->targetMutex, 100); // TODO: figure out how long the block time should be.
     flywheel->target = rpm;
     mutexGive(flywheel->targetMutex);
 
+    flywheel->estimate = estimate;
     flywheel->firstCross = true;
 
     if (flywheel->ready)
     {
         activate(flywheel);
     }
-
-    //printf("Debug Target set to %f rpm.\n", rpm);
 }
 
 void
@@ -217,7 +204,6 @@ void
 flywheelSetPidKp(Flywheel *flywheel, float gain)
 {
     flywheel->pidKp = gain;
-    //printf("Debug pidKp set to %f.\n", gain);
 }
 void
 flywheelSetPidKi(Flywheel *flywheel, float gain)
@@ -233,11 +219,6 @@ void
 flywheelSetTbhGain(Flywheel *flywheel, float gain)
 {
     flywheel->tbhGain = gain;
-}
-void
-flywheelSetTbhApprox(Flywheel *flywheel, float approx)
-{
-    flywheel->tbhApprox = approx;
 }
 
 void
@@ -289,24 +270,21 @@ update(Flywheel *flywheel)
     measureRpm(flywheel, timeChange);
     controllerUpdate(flywheel, timeChange);
     updateMotor(flywheel);
-    // TODO: update smart motor group.
 }
 
 
 static void
 measureRpm(Flywheel *flywheel, float timeChange)
 {
-    int reading = encoderGet(flywheel->encoder);
-    int ticks = reading - flywheel->reading;
-
     // Raw rpm
-    float rpm = ticks / flywheel->encoderTicksPerRevolution * flywheel->gearing / timeChange * 60;
+    float rpm = flywheel->encoderGet(flywheel->encoderArgs);
+    rpm *= flywheel->gearing;
 
     // Low-pass filter
-    float measureChange = (rpm - flywheel->measured) * timeChange / flywheel->smoothing;
+    float measureChange = (rpm - flywheel->measured);
+    measureChange *= timeChange / flywheel->smoothing;
 
     // Update
-    flywheel->reading = reading;
     flywheel->measuredRaw = rpm;
     flywheel->measured += measureChange;
     flywheel->derivative = measureChange / timeChange;
@@ -365,7 +343,7 @@ tbhUpdate(Flywheel *flywheel, float timeChange)
     {
         if (flywheel->firstCross)
         {
-            flywheel->action = flywheel->tbhApprox;
+            flywheel->action = flywheel->estimate;
             flywheel->firstCross = false;
         }
         else
@@ -383,11 +361,11 @@ bangBangUpdate(Flywheel *flywheel, float timeChange)
 {
     UNUSED(timeChange);
 
-    if (flywheel->measured > flywheel->target)
+    if (flywheel->measured > flywheel->target + flywheel->bangBangAbove)
     {
         flywheel->action = 0;
     }
-    else if (flywheel->measured < flywheel->target)
+    else if (flywheel->measured < flywheel->target + flywheel->bangBangBelow)
     {
         flywheel->action = flywheel->bangBangValue;
     }
@@ -397,11 +375,11 @@ bangBangUpdate(Flywheel *flywheel, float timeChange)
 static void
 updateMotor(Flywheel *flywheel)
 {
-    for (int i = 0; flywheel->motorSetters[i] && i < 8; i++)
+    for (int i = 0; flywheel->motorSet[i] && i < 8; i++)
     {
-        void *target = flywheel->motorTargets[i];
+        void * args = flywheel->motorArgs[i];
         int command = flywheel->action;
-        flywheel->motorSetters[i](target, command);
+        flywheel->motorSet[i](args, command);
     }
 }
 

@@ -2,6 +2,9 @@
 #define FLYWHEEL_H_
 
 #include <stdbool.h>
+#include "pigeon.h"
+#include "shims.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,31 +26,34 @@ FlywheelController
 }
 FlywheelController;
 
-typedef void (*FlywheelMotorSetter)(void *target, int command);
-
 typedef struct
 FlywheelSetup
 {
-    char id[8];
-    float gearing;                      // Ratio of flywheel RPM per encoder RPM.
+    char id[PIGEON_KEYSIZE];
+    float gearing;
+    float smoothing;
+
     float pidKp;
     float pidKi;
     float pidKd;
     float tbhGain;
-    float tbhApprox;
-    float bangBangValue;
-    float smoothing;                    // Amount of smoothing applied to the flywheel RPM, as the low-pass time constant in seconds.
+    float bbValue;
+    float bbAbove;
+    float bbBelow;
     FlywheelController controllerType;
-    float encoderTicksPerRevolution;    // Number of ticks each time the encoder completes one revolution
-    unsigned char encoderPortTop;       // Digital port number where the encoder's top wire is connected.
-    unsigned char encoderPortBottom;    // Digital port number where the encoder's bottom wire is connected.
-    FlywheelMotorSetter motorSetters[8];
-    void * motorTargets[8];
-    bool encoderReverse;                // Whether the encoder values should be reversed.
+
+    EncoderGetter encoderGetter;
+    EncoderResetter encoderResetter;
+    void * encoderArgs;
+
+    MotorSetter motorSetters[8];
+    void * motorArgs[8];
+
     unsigned int priorityReady;
     unsigned int priorityActive;
     unsigned long frameDelayReady;
     unsigned long frameDelayActive;
+
     float readyErrorInterval;
     float readyDerivativeInterval;
     int readyCheckCycle;
@@ -65,7 +71,7 @@ Flywheel *flywheelInit(FlywheelSetup setup);
 void flywheelRun(Flywheel *flywheel);
 
 // Sets target RPM
-void flywheelSet(Flywheel *flywheel, float rpm);
+void flywheelSet(Flywheel *flywheel, float rpm, float estimate);
 
 void flywheelSetController(Flywheel *flywheel, FlywheelController type);
 void flywheelSetSmoothing(Flywheel *flywheel, float smoothing);
@@ -73,7 +79,6 @@ void flywheelSetPidKp(Flywheel *flywheel, float gain);
 void flywheelSetPidKi(Flywheel *flywheel, float gain);
 void flywheelSetPidKd(Flywheel *flywheel, float gain);
 void flywheelSetTbhGain(Flywheel *flywheel, float gain);
-void flywheelSetTbhApprox(Flywheel *flywheel, float approx);
 void waitUntilFlywheelReady(Flywheel *flywheel, const unsigned long blockTime);
 
 // }}}
