@@ -14,6 +14,7 @@
 typedef struct
 Pid
 {
+    Portal * portal;
     float gainP;
     float gainI;
     float gainD;
@@ -25,6 +26,7 @@ ControlHandle
 pidInit(float gainP, float gainI, float gainD)
 {
     Pid * pid = malloc(sizeof(Pid));
+    pid->portal = NULL;
     pid->gainP = gainP;
     pid->gainI = gainI;
     pid->gainD = gainD;
@@ -37,6 +39,7 @@ pidReset(ControlHandle handle)
 {
     Pid * pid = handle;
     pid->integral = 0;
+    portalUpdate(pid->portal, "integral");
 }
 
 float
@@ -51,6 +54,9 @@ pidUpdate(ControlHandle handle, ControlSystem * system)
     float partD = pid->gainD * system->error;
 
     system->action = partP + partI + partD;
+
+    portalUpdate(pid->portal, "integral");
+
     return system->action;
 }
 
@@ -58,6 +64,7 @@ void
 pidSetup(ControlHandle handle, Portal * portal)
 {
     Pid * pid = handle;
+    pid->portal = portal;
     PortalEntrySetup setups[] =
     {
         {
@@ -92,6 +99,7 @@ pidSetup(ControlHandle handle, Portal * portal)
 typedef struct
 Tbh
 {
+    Portal * portal;
     TbhEstimator estimator;
     float gain;
     float lastAction;
@@ -105,6 +113,7 @@ ControlHandle
 tbhInit(float gain, TbhEstimator estimator)
 {
     Tbh * tbh = malloc(sizeof(tbh));
+    tbh->portal = NULL;
     tbh->estimator = estimator;
     tbh->gain = gain;
     tbhReset(tbh);
@@ -119,6 +128,10 @@ tbhReset(ControlHandle handle)
     tbh->lastError = 0.0f;
     tbh->lastTarget = 0.0f;
     tbh->crossed = false;
+    portalUpdate(tbh->portal, "last-action");
+    portalUpdate(tbh->portal, "last-error");
+    portalUpdate(tbh->portal, "last-target");
+    portalUpdate(tbh->portal, "crossed");
 }
 
 float
@@ -130,6 +143,8 @@ tbhUpdate(ControlHandle handle, ControlSystem * system)
     {
         tbh->crossed = false;
         tbh->lastTarget = system->target;
+        portalUpdate(tbh->portal, "crossed");
+        portalUpdate(tbh->portal, "last-target");
     }
     if (signOf(system->error) != signOf(tbh->lastError))
     {
@@ -137,14 +152,17 @@ tbhUpdate(ControlHandle handle, ControlSystem * system)
         {
             system->action = tbh->estimator(system->target);
             tbh->crossed = true;
+            portalUpdate(tbh->portal, "crossed");
         }
         else
         {
             system->action = 0.5f * (system->action + tbh->lastAction);
         }
         tbh->lastAction = system->action;
+        portalUpdate(tbh->portal, "last-action");
     }
     tbh->lastError = system->error;
+    portalUpdate(tbh->portal, "last-error");
     return system->action;
 }
 
@@ -152,6 +170,7 @@ void
 tbhSetup(ControlHandle handle, Portal * portal)
 {
     Tbh * tbh = handle;
+    tbh->portal = portal;
     PortalEntrySetup setups[] =
     {
         {
