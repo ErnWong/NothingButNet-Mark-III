@@ -1,6 +1,8 @@
 #ifndef CONTROL_H_
 #define CONTROL_H_
 
+#include "pigeon.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +29,9 @@ typedef float
 
 typedef void
 (*ControlResetter)(ControlHandle);
+
+typedef void
+(*ControlSetup)(ControlHandle, Portal*);
 
 typedef float
 (*TbhEstimator)(float target);

@@ -35,6 +35,7 @@ FlywheelSetup
     float gearing;
     float smoothing;
 
+    ControlSetup controlSetup;
     ControlUpdater controlUpdater;
     ControlResetter controlResetter;
     void * control;

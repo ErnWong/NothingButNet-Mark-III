@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 #include "control.h"
+#include "pigeon.h"
 #include "utils.h"
 
 
@@ -51,6 +52,36 @@ pidUpdate(ControlHandle handle, ControlSystem * system)
 
     system->action = partP + partI + partD;
     return system->action;
+}
+
+void
+pidSetup(ControlHandle handle, Portal * portal)
+{
+    Pid * pid = handle;
+    PortalEntrySetup setups[] =
+    {
+        {
+            .key = "gain-p",
+            .handler = portalFloatHandler,
+            .handle = &pid->gainP
+        },
+        {
+            .key = "gain-i",
+            .handler = portalFloatHandler,
+            .handle = &pid->gainI
+        },
+        {
+            .key = "gain-d",
+            .handler = portalFloatHandler,
+            .handle = &pid->gainD
+        },
+        {
+            .key = "integral",
+            .handler = portalFloatHandler,
+            .handle = &pid->integral
+        }
+    };
+    portalAddBatch(portal, setups);
 }
 
 // }}}
@@ -117,6 +148,41 @@ tbhUpdate(ControlHandle handle, ControlSystem * system)
     return system->action;
 }
 
+void
+tbhSetup(ControlHandle handle, Portal * portal)
+{
+    Tbh * tbh = handle;
+    PortalEntrySetup setups[] =
+    {
+        {
+            .key = "gain",
+            .handler = portalFloatHandler,
+            .handle = &tbh->gain
+        },
+        {
+            .key = "last-action",
+            .handler = portalFloatHandler,
+            .handle = &tbh->lastAction
+        },
+        {
+            .key = "last-error",
+            .handler = portalFloatHandler,
+            .handle = &tbh->lastError
+        },
+        {
+            .key = "last-target",
+            .handler = portalFloatHandler,
+            .handle = &tbh->lastTarget
+        },
+        {
+            .key = "crossed",
+            .handler = portalBoolHandler,
+            .handle = &tbh->crossed
+        }
+    };
+    portalAddBatch(portal, setups);
+}
+
 // }}}
 
 
@@ -167,6 +233,36 @@ bangBangUpdate(ControlHandle handle, ControlSystem * system)
         system->action = bb->actionHigh;
     }
     return system->action;
+}
+
+void
+bangBangSetup(ControlHandle handle, Portal * portal)
+{
+    BangBang * bb = handle;
+    PortalEntrySetup setups[] =
+    {
+        {
+            .key = "action-high",
+            .handler = portalFloatHandler,
+            .handle = &bb->actionHigh
+        },
+        {
+            .key = "action-low",
+            .handler = portalFloatHandler,
+            .handle = &bb->actionLow
+        },
+        {
+            .key = "trigger-high",
+            .handler = portalFloatHandler,
+            .handle = &bb->triggerHigh
+        },
+        {
+            .key = "trigger-low",
+            .handler = portalFloatHandler,
+            .handle = &bb->triggerLow
+        }
+    };
+    portalAddBatch(portal, setups);
 }
 
 // }}}
