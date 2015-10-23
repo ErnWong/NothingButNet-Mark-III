@@ -390,6 +390,12 @@ initPortal(Flywheel * flywheel, FlywheelSetup setup)
             .handle = &flywheel->priorityActive
         },
         {
+            .key = "delay",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->frameDelay,
+            .onchange = true
+        },
+        {
             .key = "delay-ready",
             .handler = portalUlongHandler,
             .handle = &flywheel->frameDelayReady
