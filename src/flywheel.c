@@ -65,6 +65,7 @@ static void checkReady(Flywheel*);
 static void activate(Flywheel*);
 static void readify(Flywheel*);
 static void initPortal(Flywheel*, FlywheelSetup);
+static void readyHandler(void * handle, char * message, char * response);
 
 // }}}
 
@@ -374,8 +375,8 @@ initPortal(Flywheel * flywheel, FlywheelSetup setup)
         },
         {
             .key = "ready",
-            .handler = portalBoolHandler,
-            .handle = &flywheel->ready,
+            .handler = readyHandler,
+            .handle = flywheel,
             .onchange = true
         },
         {
@@ -422,6 +423,17 @@ initPortal(Flywheel * flywheel, FlywheelSetup setup)
         }
     };
     portalAddBatch(flywheel->portal, setups);
+}
+
+void readyHandler(void * handle, char * message, char * response)
+{
+    Flywheel * flywheel = handle;
+    if (message[0] == '\0')
+    {
+        strcpy(response, flywheel->ready? "true" : "false");
+    }
+    else if (strcmp(message, "true") == 0) readify(flywheel);
+    else if (strcmp(message, "false") == 0) activate(flywheel);
 }
 
 // }}}
