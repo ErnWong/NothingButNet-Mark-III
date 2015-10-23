@@ -135,6 +135,10 @@ flywheelReset(Flywheel *flywheel)
     flywheel->system.derivative = 0.0f;
     flywheel->system.error = 0.0f;
     flywheel->system.action = 0.0f;
+    portalUpdate(flywheel->portal, "measured");
+    portalUpdate(flywheel->portal, "derivative");
+    portalUpdate(flywheel->portal, "error");
+    portalUpdate(flywheel->portal, "action");
     flywheel->controlReset(flywheel->control);
     flywheel->encoderReset(flywheel->encoder);
 }
@@ -146,6 +150,8 @@ flywheelSet(Flywheel *flywheel, float rpm)
     mutexTake(flywheel->targetMutex, 100); // TODO: figure out how long the block time should be.
     flywheel->system.target = rpm;
     mutexGive(flywheel->targetMutex);
+
+    portalUpdate(flywheel->portal, "target");
 
     if (flywheel->ready)
     {
@@ -229,6 +235,12 @@ updateSystem(Flywheel *flywheel)
     // TODO: Find out what block time is suitable, or needeed at all.
     flywheel->system.error = error;
     mutexGive(flywheel->targetMutex);
+
+    portalUpdate(flywheel->portal, "dt");
+    portalUpdate(flywheel->portal, "raw");
+    portalUpdate(flywheel->portal, "measured");
+    portalUpdate(flywheel->portal, "derivative");
+    portalUpdate(flywheel->portal, "error");
 }
 
 
@@ -245,6 +257,7 @@ updateControl(Flywheel *flywheel)
     {
         flywheel->system.action = -127;
     }
+    portalUpdate(flywheel->portal, "action");
 }
 
 
@@ -289,6 +302,9 @@ activate(Flywheel *flywheel)
     {
         taskPrioritySet(flywheel->task, flywheel->priorityActive);
     }
+    portalUpdate(flywheel->portal, "ready");
+    portalUpdate(flywheel->portal, "delay");
+
     // TODO: Signal not ready?
 }
 
@@ -302,6 +318,9 @@ readify(Flywheel *flywheel)
     {
         taskPrioritySet(flywheel->task, flywheel->priorityReady);
     }
+    portalUpdate(flywheel->portal, "ready");
+    portalUpdate(flywheel->portal, "delay");
+
     semaphoreGive(flywheel->readySemaphore);
 }
 
