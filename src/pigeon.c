@@ -179,6 +179,7 @@ portalAddBatch(Portal * portal, PortalEntrySetup * setup)
 void
 portalSet(Portal * portal, const char * key, const char * message)
 {
+    if (portal == NULL) return;
     if (!portal->enabled) return;
 
     PortalEntry ** location = findEntry(key, &portal->topEntry);
@@ -203,6 +204,7 @@ portalSet(Portal * portal, const char * key, const char * message)
 void
 portalUpdate(Portal * portal, const char * key)
 {
+    if (portal == NULL) return;
     if (!portal->enabled) return;
 
     PortalEntry ** location = findEntry(key, &portal->topEntry);
