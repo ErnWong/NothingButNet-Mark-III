@@ -42,6 +42,7 @@ PortalEntrySetup
     void * handle;
     bool stream;
     bool onchange;
+    bool manual;
 }
 PortalEntrySetup;
 
@@ -63,6 +64,9 @@ portalSet(
     const char * key,
     const char * message
 );
+
+void
+portalUpdate(Portal *, const char * key);
 
 void
 portalReady(Portal *);

@@ -34,6 +34,7 @@ struct PortalEntry
     void * handle;
     bool stream;
     bool onchange;
+    bool manual;
 
     // binary search tree links:
     PortalEntry * entryRight;
@@ -150,6 +151,7 @@ portalAdd(Portal * portal, PortalEntrySetup setup)
 
     entry->stream = setup.stream;
     entry->onchange = setup.onchange;
+    entry->manual = setup.manual;
 
     entry->entryLeft = NULL;
     entry->entryRight = NULL;
@@ -185,6 +187,30 @@ portalSet(Portal * portal, const char * key, const char * message)
 
     PortalEntry * entry = *location;
     stringCopy(entry->message, message, LINESIZE);
+
+    if (portal->onchange && entry->onchange)
+    {
+        writeMessage(
+            portal->pigeon,
+            portal->id,
+            entry->key,
+            entry->message
+        );
+    }
+}
+
+
+void
+portalUpdate(Portal * portal, const char * key)
+{
+    if (!portal->enabled) return;
+
+    PortalEntry ** location = findEntry(key, &portal->topEntry);
+
+    if (*location == NULL) return;
+
+    PortalEntry * entry = *location;
+    entry->handler(entry->handle, "", entry->message);
 
     if (portal->onchange && entry->onchange)
     {
@@ -302,6 +328,8 @@ task(void * pigeonData)
         if (entry->handler == NULL) break;
         char response[LINESIZE];
         entry->handler(entry->handle, message, response);
+
+        if (!entry->manual) portalUpdate(portal, entry->key);
 
         if (response[0] == '\0') break;
 
