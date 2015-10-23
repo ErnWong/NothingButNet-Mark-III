@@ -160,11 +160,11 @@ bangBangUpdate(ControlHandle handle, ControlSystem * system)
     BangBang * bb = handle;
     if (system->error > bb->triggerHigh)
     {
-        system->action = bb->actionHigh;
+        system->action = bb->actionLow;
     }
     else if (system->error < bb->triggerLow)
     {
-        system->action = bb->actionLow;
+        system->action = bb->actionHigh;
     }
     return system->action;
 }
