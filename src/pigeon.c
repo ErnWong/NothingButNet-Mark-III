@@ -13,6 +13,7 @@
 
 #define LINESIZE PIGEON_LINESIZE
 #define ALIGNSIZE PIGEON_ALIGNSIZE
+#define UNUSED(x) (void)(x)
 
 
 
@@ -213,6 +214,7 @@ portalFloatHandler(void * handle, char * msg, char * res)
     else
     {
         bool success = stringToFloat(msg, var);
+        UNUSED(success);
         // TODO: warn if not successful?
     }
 }
@@ -225,8 +227,11 @@ portalUintHandler(void * handle, char * msg, char * res)
     if (msg[0] == '\0') sprintf(res, "%u", *var);
     else
     {
-       bool success = stringToUlong(msg, var);
-       // TODO: warn if not successful?
+        unsigned long cast;
+        bool success = stringToUlong(msg, &cast);
+        *var = cast;
+        UNUSED(success);
+        // TODO: warn if not successful?
     }
 }
 
@@ -235,11 +240,12 @@ void
 portalUlongHandler(void * handle, char * msg, char * res)
 {
     unsigned long * var = handle;
-    if (msg[0] == '\0') sprintf(res, "%u", *var);
+    if (msg[0] == '\0') sprintf(res, "%lu", *var);
     else
     {
-       bool success = stringToUlong(msg, var);
-       // TODO: warn if not successful?
+        bool success = stringToUlong(msg, var);
+        UNUSED(success);
+        // TODO: warn if not successful?
     }
 }
 
