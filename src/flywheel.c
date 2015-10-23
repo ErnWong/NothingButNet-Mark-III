@@ -420,12 +420,7 @@ initPortal(Flywheel * flywheel, FlywheelSetup setup)
             .handle = NULL
         }
     };
-    for (int i = 0; i < 16; i++)
-    {
-        if (setups[i].key[0] == '~' && setups[i].handler == NULL)
-            break;
-        portalAdd(flywheel->portal, setups[i]);
-    }
+    portalAddBatch(flywheel->portal, setups);
 }
 
 // }}}

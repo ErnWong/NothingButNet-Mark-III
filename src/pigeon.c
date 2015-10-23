@@ -159,6 +159,21 @@ portalAdd(Portal * portal, PortalEntrySetup setup)
 
 
 void
+portalAddBatch(Portal * portal, PortalEntrySetup * setup)
+{
+    while (true)
+    {
+        if (setup->key[0] == '~' && setup->handler == NULL)
+        {
+            break;
+        }
+        portalAdd(portal, *setup);
+        setup++;
+    }
+}
+
+
+void
 portalSet(Portal * portal, const char * key, const char * message)
 {
     if (!portal->enabled) return;

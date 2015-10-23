@@ -55,6 +55,9 @@ void
 portalAdd(Portal *, PortalEntrySetup);
 
 void
+portalAddBatch(Portal *, PortalEntrySetup *);
+
+void
 portalSet(
     Portal *,
     const char * key,
