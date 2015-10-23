@@ -31,7 +31,7 @@ typedef void
 (*ControlResetter)(ControlHandle);
 
 typedef void
-(*ControlSetup)(ControlHandle, Portal*);
+(*ControlSetup)(ControlHandle, Portal *);
 
 typedef float
 (*TbhEstimator)(float target);
