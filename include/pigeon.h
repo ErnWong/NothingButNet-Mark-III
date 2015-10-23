@@ -9,22 +9,15 @@ extern "C" {
 
 
 
-// Definitions {{{
-
-#define PIGEON_KEYSIZE 9
-#define PIGEON_MESSAGESIZE 81
-#define PIGEON_PATHSIZE (2 * PIGEON_KEYSIZE + 1)
-#define PIGEON_LINESIZE (4 + 8 + PIGEON_PATHSIZE + PIGEON_MESSAGESIZE)
-#define PIGEON_INPUTSIZE (PIGEON_PATHSIZE + 1 + PIGEON_MESSAGESIZE)
-
-// }}}
+#define PIGEON_ALIGNSIZE 4
+#define PIGEON_LINESIZE 128
 
 
 
 // Typedefs {{{
 
 typedef void
-(*PortalKeyHandler)(void * target, char message[PIGEON_MESSAGESIZE]);
+(*PortalEntryHandler)(void * target, char * message, char * response);
 
 typedef char *
 (*PigeonIn)(char * buffer, int maxSize); // getline
@@ -42,15 +35,15 @@ struct Portal;
 typedef struct Portal Portal;
 
 typedef struct
-PortalKeySetup
+PortalEntrySetup
 {
-    char key[PIGEON_KEYSIZE];
-    PortalKeyHandler handler;
-    void * target;
+    char * key;
+    PortalEntryHandler handler;
+    void * handle;
     bool stream;
     bool onchange;
 }
-PortalKeySetup;
+PortalEntrySetup;
 
 // }}}
 
@@ -58,17 +51,14 @@ PortalKeySetup;
 
 // Methods {{{
 
-Portal *
-portalInit(char id[PIGEON_KEYSIZE]);
-
 void
-portalAdd(Portal *, PortalKeySetup);
+portalAdd(Portal *, PortalEntrySetup);
 
 void
 portalSet(
     Portal *,
-    char key[PIGEON_KEYSIZE],
-    char message[PIGEON_MESSAGESIZE]
+    const char * key,
+    const char * message
 );
 
 void
@@ -78,7 +68,19 @@ Pigeon *
 pigeonInit(PigeonIn, PigeonOut, PigeonMillis);
 
 Portal *
-pigeonCreatePortal(Pigeon *, const char id[PIGEON_KEYSIZE]);
+pigeonCreatePortal(Pigeon *, const char * id);
+
+void
+portalFloatHandler(void * handle, char * message, char * response);
+
+void
+portalUintHandler(void * handle, char * message, char * response);
+
+void
+portalUlongHandler(void * handle, char * message, char * response);
+
+void
+portalBoolHandler(void * handle, char * message, char * response);
 
 // }}}
 

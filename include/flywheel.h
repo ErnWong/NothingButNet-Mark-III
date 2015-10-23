@@ -29,7 +29,9 @@ FlywheelController;
 typedef struct
 FlywheelSetup
 {
-    char id[PIGEON_KEYSIZE];
+    char * id;
+    Pigeon * pigeon;
+
     float gearing;
     float smoothing;
 
@@ -49,9 +51,9 @@ FlywheelSetup
     unsigned long frameDelayReady;
     unsigned long frameDelayActive;
 
-    float readyErrorInterval;
-    float readyDerivativeInterval;
-    int readyCheckCycle;
+    float thresholdError;
+    float thresholdDerivative;
+    int checkCycle;
 }
 FlywheelSetup;
 

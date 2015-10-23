@@ -15,7 +15,7 @@
 
 struct Flywheel
 {
-    char id[PIGEON_KEYSIZE];
+    Portal * portal;
 
     ControlSystem system;
     ControlUpdater controlUpdate;
@@ -39,9 +39,9 @@ struct Flywheel
     unsigned long frameDelay;
     unsigned long frameDelayReady;
     unsigned long frameDelayActive;
-    float readyErrorInterval;
-    float readyDerivativeInterval;
-    int readyCheckCycle;
+    float thresholdError;
+    float thresholdDerivative;
+    int checkCycle;
 
     Semaphore readySemaphore;
 
@@ -56,14 +56,15 @@ struct Flywheel
 
 // Private functions, forward declarations. {{{
 
-static void task(void *flywheelPointer);
-static void update(Flywheel *flywheel);
-static void updateSystem(Flywheel *flywheel);
-static void updateControl(Flywheel *flywheel);
-static void updateMotor(Flywheel *flywheel);
-static void checkReady(Flywheel *flywheel);
-static void activate(Flywheel *flywheel);
-static void readify(Flywheel *flywheel);
+static void task(void * flywheelPointer);
+static void update(Flywheel*);
+static void updateSystem(Flywheel*);
+static void updateControl(Flywheel*);
+static void updateMotor(Flywheel*);
+static void checkReady(Flywheel*);
+static void activate(Flywheel*);
+static void readify(Flywheel*);
+static void initPortal(Flywheel*, FlywheelSetup);
 
 // }}}
 
@@ -75,9 +76,9 @@ static void readify(Flywheel *flywheel);
 Flywheel *
 flywheelInit(FlywheelSetup setup)
 {
-    Flywheel *flywheel = malloc(sizeof(Flywheel));
+    Flywheel * flywheel = malloc(sizeof(Flywheel));
 
-    strncpy(flywheel->id, setup.id, 8);
+    initPortal(flywheel, setup);
 
     flywheel->system.microTime = micros();
     flywheel->system.dt = 0.0f;
@@ -111,10 +112,10 @@ flywheelInit(FlywheelSetup setup)
     flywheel->frameDelayReady = setup.frameDelayReady;
     flywheel->frameDelayActive = setup.frameDelayActive;
 
-    flywheel->readyErrorInterval = setup.readyErrorInterval;
-    flywheel->readyDerivativeInterval = setup.readyDerivativeInterval;
+    flywheel->thresholdError = setup.thresholdError;
+    flywheel->thresholdDerivative = setup.thresholdDerivative;
 
-    flywheel->readyCheckCycle = setup.readyCheckCycle;
+    flywheel->checkCycle = setup.checkCycle;
 
     flywheel->readySemaphore = semaphoreCreate();
 
@@ -180,7 +181,7 @@ task(void *flywheelPointer)
     int i = 0;
     while (1)
     {
-        i = flywheel->readyCheckCycle;
+        i = flywheel->checkCycle;
         while (i)
         {
             update(flywheel);
@@ -261,9 +262,9 @@ static void
 checkReady(Flywheel *flywheel)
 {
     bool errorReady =
-        isWithin(flywheel->system.error, flywheel->readyErrorInterval);
+        isWithin(flywheel->system.error, flywheel->thresholdError);
     bool derivativeReady =
-        isWithin(flywheel->system.derivative, flywheel->readyDerivativeInterval);
+        isWithin(flywheel->system.derivative, flywheel->thresholdDerivative);
     bool ready = errorReady && derivativeReady;
 
     if (ready && !flywheel->ready)
@@ -302,5 +303,129 @@ readify(Flywheel *flywheel)
     semaphoreGive(flywheel->readySemaphore);
 }
 
+
+// }}}
+
+
+
+// Pigeon setup {{{
+
+static void
+initPortal(Flywheel * flywheel, FlywheelSetup setup)
+{
+    flywheel->portal = pigeonCreatePortal(setup.pigeon, setup.id);
+
+    PortalEntrySetup setups[] =
+    {
+        {
+            .key = "time",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->system.microTime
+        },
+        {
+            .key = "dt",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.dt
+        },
+        {
+            .key = "target",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.target,
+            .stream = true,
+            .onchange = true
+        },
+        {
+            .key = "measured",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.measured,
+            .stream = true
+        },
+        {
+            .key = "derivatve",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.derivative
+        },
+        {
+            .key = "error",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.error
+        },
+        {
+            .key = "action",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.action,
+            .stream = true
+        },
+        {
+            .key = "raw",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->measuredRaw
+        },
+        {
+            .key = "gearing",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->gearing
+        },
+        {
+            .key = "smoothing",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->smoothing
+        },
+        {
+            .key = "ready",
+            .handler = portalBoolHandler,
+            .handle = &flywheel->ready,
+            .onchange = true
+        },
+        {
+            .key = "priority-ready",
+            .handler = portalUintHandler,
+            .handle = &flywheel->priorityReady
+        },
+        {
+            .key = "priority-active",
+            .handler = portalUintHandler,
+            .handle = &flywheel->priorityActive
+        },
+        {
+            .key = "delay-ready",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->frameDelayReady
+        },
+        {
+            .key = "delay-active",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->frameDelayActive
+        },
+        {
+            .key = "threshold-error",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->thresholdError
+        },
+        {
+            .key = "threshold-derivative",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->thresholdDerivative
+        },
+        {
+            .key = "check-cycle",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->checkCycle
+        },
+
+        // End terminating struct
+        {
+            .key = "~",
+            .handler = NULL,
+            .handle = NULL
+        }
+    };
+    for (int i = 0; i < 16; i++)
+    {
+        if (setups[i].key[0] == '~' && setups[i].handler == NULL)
+            break;
+        portalAdd(flywheel->portal, setups[i]);
+    }
+}
 
 // }}}

@@ -9,23 +9,17 @@
 #include "utils.h"
 
 
-// Private convenient definitions for clarity {{{
+// Private, for clarity
 
-#define KEYSIZE PIGEON_KEYSIZE
-#define MSGSIZE PIGEON_MESSAGESIZE
-#define INPUTSIZE PIGEON_INPUTSIZE
 #define LINESIZE PIGEON_LINESIZE
-
-// }}}
-
+#define ALIGNSIZE PIGEON_ALIGNSIZE
 
 
-// Private structs/typedefs - foward Declarations {{{
+
+// Private structs/typedefs - foward Declarations
 
 struct PortalEntry;
 typedef struct PortalEntry PortalEntry;
-
-// }}}
 
 
 
@@ -33,10 +27,10 @@ typedef struct PortalEntry PortalEntry;
 
 struct PortalEntry
 {
-    char key[KEYSIZE];
-    char message[MSGSIZE];
-    PortalKeyHandler handler;
-    void * target;
+    const char * key;
+    char message[LINESIZE];
+    PortalEntryHandler handler;
+    void * handle;
     bool stream;
     bool onchange;
 
@@ -51,7 +45,7 @@ struct Portal
     Pigeon * pigeon;
     bool ready;
 
-    char id[KEYSIZE];
+    const char * id;
     PortalEntry * topEntry;
     bool enabled;
     bool stream;
@@ -82,12 +76,12 @@ static void checkReady(Pigeon *);
 static bool isPortalBranchReady(Portal *);
 static void writeMessage(
     Pigeon *,
-    const char id[KEYSIZE],
-    const char key[KEYSIZE],
-    const char message[MSGSIZE]
+    const char * id,
+    const char * key,
+    const char * message
 );
-static PortalEntry ** findEntry(const char key[KEYSIZE], PortalEntry **);
-static Portal ** findPortal(const char id[KEYSIZE], Portal **);
+static PortalEntry ** findEntry(const char * key, PortalEntry **);
+static Portal ** findPortal(const char * id, Portal **);
 
 // }}}
 
@@ -112,13 +106,13 @@ pigeonInit(PigeonIn getter, PigeonOut putter, PigeonMillis clock)
 
 
 Portal *
-pigeonCreatePortal(Pigeon * pigeon, const char id[KEYSIZE])
+pigeonCreatePortal(Pigeon * pigeon, const char * id)
 {
     Portal * portal = malloc(sizeof(Portal));
 
     portal->pigeon = pigeon;
     portal->ready = false;
-    strncpy(portal->id, id, KEYSIZE);
+    portal->id = id;
 
     portal->enabled = false;
     portal->stream = true;
@@ -141,20 +135,17 @@ pigeonCreatePortal(Pigeon * pigeon, const char id[KEYSIZE])
 // Public portal methods {{{
 
 void
-portalAdd(Portal * portal, PortalKeySetup setup)
+portalAdd(Portal * portal, PortalEntrySetup setup)
 {
     if (portal->ready) return;
 
     PortalEntry * entry = malloc(sizeof(PortalEntry));
 
-    // strncpy size - 1 for null terminated
-    strncpy(entry->key, setup.key, KEYSIZE - 1);
-    entry->key[KEYSIZE - 1] = '\0';
-
-    memset(entry->message, 0, KEYSIZE);
+    entry->key = setup.key;
+    entry->message[0] = '\0';
 
     entry->handler = setup.handler;
-    entry->target = setup.target;
+    entry->handle = setup.handle;
 
     entry->stream = setup.stream;
     entry->onchange = setup.onchange;
@@ -168,7 +159,7 @@ portalAdd(Portal * portal, PortalKeySetup setup)
 
 
 void
-portalSet(Portal * portal, char key[KEYSIZE], char message[MSGSIZE])
+portalSet(Portal * portal, const char * key, const char * message)
 {
     if (!portal->enabled) return;
 
@@ -177,8 +168,7 @@ portalSet(Portal * portal, char key[KEYSIZE], char message[MSGSIZE])
     if (*location == NULL) return;
 
     PortalEntry * entry = *location;
-    strncpy(entry->message, message, MSGSIZE - 1);
-    entry->message[MSGSIZE - 1] = '\0';
+    stringCopy(entry->message, message, LINESIZE);
 
     if (portal->onchange && entry->onchange)
     {
@@ -199,6 +189,61 @@ portalReady(Portal * portal)
     checkReady(portal->pigeon);
 }
 
+
+void
+portalFloatHandler(void * handle, char * msg, char * res)
+{
+    float * var = handle;
+    if (msg[0] == '\0') sprintf(res, "%f", *var);
+    else
+    {
+        bool success = stringToFloat(msg, var);
+        // TODO: warn if not successful?
+    }
+}
+
+
+void
+portalUintHandler(void * handle, char * msg, char * res)
+{
+    unsigned int * var = handle;
+    if (msg[0] == '\0') sprintf(res, "%u", *var);
+    else
+    {
+       bool success = stringToUlong(msg, var);
+       // TODO: warn if not successful?
+    }
+}
+
+
+void
+portalUlongHandler(void * handle, char * msg, char * res)
+{
+    unsigned long * var = handle;
+    if (msg[0] == '\0') sprintf(res, "%u", *var);
+    else
+    {
+       bool success = stringToUlong(msg, var);
+       // TODO: warn if not successful?
+    }
+}
+
+
+void
+portalBoolHandler(void * handle, char * msg, char * res)
+{
+    bool * var = handle;
+    if (msg[0] == '\0') strcpy(res, *var ? "true" : "false");
+    else if (strcmp(msg, "true") == 0)
+    {
+        *var = true;
+    }
+    else if (strcmp(msg, "false") == 0)
+    {
+        *var = false;
+    }
+}
+
 // }}}
 
 
@@ -211,8 +256,8 @@ task(void * pigeonData)
     Pigeon * pigeon = pigeonData;
     while (true)
     {
-        char input[INPUTSIZE];
-        fgets(input, INPUTSIZE, stdin);
+        char input[LINESIZE];
+        fgets(input, LINESIZE, stdin);
 
         trimSpaces(input);
 
@@ -226,14 +271,25 @@ task(void * pigeonData)
         trimSpaces(entryKey);
 
         Portal ** portalPos = findPortal(portalId, &pigeon->topPortal);
-        if (*portalPos == NULL) return;
+        if (*portalPos == NULL) break;
         Portal * portal = *portalPos;
 
         PortalEntry ** entryPos = findEntry(entryKey, &portal->topEntry);
-        if (*entryPos == NULL) return;
+        if (*entryPos == NULL) break;
         PortalEntry * entry = *entryPos;
 
-        entry->handler(entry->target, message);
+        if (entry->handler == NULL) break;
+        char response[LINESIZE];
+        entry->handler(entry->handle, message, response);
+
+        if (response[0] == '\0') break;
+
+        writeMessage(
+            pigeon,
+            portal->id,
+            entry->key,
+            response
+        );
 
         delay(40);
     }
@@ -265,42 +321,39 @@ isPortalBranchReady(Portal * portal)
     return true;
 }
 
+
 static void
 writeMessage(
     Pigeon * pigeon,
-    const char id[KEYSIZE],
-    const char key[KEYSIZE],
-    const char message[MSGSIZE]
+    const char * id,
+    const char * key,
+    const char * message
 ){
-    // ensure null terminated
-    char safeId[KEYSIZE];
-    strncpy(safeId, id, KEYSIZE);
-    safeId[KEYSIZE - 1] = '\0';
 
-    char safeKey[KEYSIZE];
-    strncpy(safeKey, key, KEYSIZE);
-    safeKey[KEYSIZE - 1] = '\0';
-
-    char safeMessage[MSGSIZE];
-    strncpy(safeMessage, message, MSGSIZE);
-    safeMessage[MSGSIZE - 1] = '\0';
-
-    char path[18];
+    char path[LINESIZE];
+    int pathWidth;
     if (key[0] == '\0')
     {
-        snprintf(path, 18, "%s", id);
+        snprintf(path, LINESIZE, "%s", id);
+        pathWidth = strlen(id);
     }
     else
     {
-        snprintf(path, 18, "%s.%s", id, key);
+        snprintf(path, LINESIZE, "%s.%s", id, key);
+        pathWidth = strlen(id) + strlen(key) + 1;
     }
+
+    // round up
+    pathWidth += ALIGNSIZE - 1;
+    pathWidth = (pathWidth / ALIGNSIZE) * ALIGNSIZE;
 
     char str[LINESIZE];
     snprintf(
         str,
         LINESIZE,
-        "[%08u|%-17s] %s",
+        "[%08u|%-*s] %s",
         (unsigned int)pigeon->millis(),
+        pathWidth,
         path,
         message
     );
@@ -308,12 +361,12 @@ writeMessage(
 }
 
 static Portal **
-findPortal(const char id[KEYSIZE], Portal ** topPortal)
+findPortal(const char * id, Portal ** topPortal)
 {
     Portal ** visiting = topPortal;
     while (*visiting != NULL)
     {
-        int comparison = strncmp(id, (*visiting)->id, KEYSIZE);
+        int comparison = strcmp(id, (*visiting)->id);
         if (comparison == 0)
         {
             return visiting;
@@ -331,12 +384,12 @@ findPortal(const char id[KEYSIZE], Portal ** topPortal)
 }
 
 static PortalEntry **
-findEntry(const char key[KEYSIZE], PortalEntry ** topEntry)
+findEntry(const char * key, PortalEntry ** topEntry)
 {
     PortalEntry ** visiting = topEntry;
     while (*visiting != NULL)
     {
-        int comparison = strncmp(key, (*visiting)->key, KEYSIZE);
+        int comparison = strcmp(key, (*visiting)->key);
         if (comparison == 0)
         {
             return visiting;

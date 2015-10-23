@@ -3,6 +3,7 @@
 #include <API.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 
 
@@ -53,4 +54,58 @@ trimSpaces(char * str)
     *(end + 1) = '\0';
 
     return str;
+}
+
+//http://stackoverflow.com/questions/4392665/converting-string-to-float-without-atof-in-c
+// And, using atof makes the linker complain about _sbrk not defined, so the lazy way is to write custom atof:
+bool
+stringToFloat(const char * string, float * dest)
+{
+    float rez = 0, factor = 1;
+    if (*string == '-')
+    {
+        string++;
+        factor = -1;
+    }
+    for (int pointSeen = 0; *string; string++)
+    {
+        if (*string == '.')
+        {
+            pointSeen = 1;
+            continue;
+        }
+        int digit = *string - '0';
+        if (digit >= 0 && digit <= 9)
+        {
+            if (pointSeen) {
+                factor /= 10.0f;
+            }
+            rez = rez * 10.0f + (float)digit;
+        }
+        else return false;
+    }
+    *dest = rez * factor;
+    return true;
+};
+
+bool
+stringToUlong(const char * string, unsigned long * dest)
+{
+    unsigned long rez = 0;
+    for (; *string; string++)
+    {
+        int digit = *string - '0';
+        if (digit <= 0 || digit >= 9) return false;
+        rez = 10 * rez + digit;
+    }
+    *dest = rez;
+    return true;
+}
+
+char *
+stringCopy(char * destination, const char * source, size_t size)
+{
+    strncpy(destination, source, size - 1);
+    destination[size - 1] = '\0';
+    return destination;
 }
