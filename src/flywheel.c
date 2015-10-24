@@ -207,6 +207,7 @@ update(Flywheel *flywheel)
     updateSystem(flywheel);
     updateControl(flywheel);
     updateMotor(flywheel);
+    portalFlush(flywheel->portal);
 }
 
 
@@ -438,6 +439,11 @@ initPortal(Flywheel * flywheel, FlywheelSetup setup)
             .key = "check-cycle",
             .handler = portalUlongHandler,
             .handle = &flywheel->checkCycle
+        },
+        {
+            .key = "keys",
+            .handler = portalStreamKeyHandler,
+            .handle = &flywheel->portal
         },
 
         // End terminating struct

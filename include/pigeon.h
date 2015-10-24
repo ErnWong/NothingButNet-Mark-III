@@ -66,7 +66,16 @@ portalSet(
 );
 
 void
+portalGetStreamKeys(Portal *, char * destination);
+
+bool
+portalSetStreamKeys(Portal *, char * sequence);
+
+void
 portalUpdate(Portal *, const char * key);
+
+void
+portalFlush(Portal *);
 
 void
 portalReady(Portal *);
@@ -88,6 +97,9 @@ portalUlongHandler(void * handle, char * message, char * response);
 
 void
 portalBoolHandler(void * handle, char * message, char * response);
+
+void
+portalStreamKeyHandler(void * handle, char * message, char * response);
 
 // }}}
 

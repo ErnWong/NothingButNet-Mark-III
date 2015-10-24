@@ -22,6 +22,9 @@
 struct PortalEntry;
 typedef struct PortalEntry PortalEntry;
 
+struct PortalEntryList;
+typedef struct PortalEntryList PortalEntryList;
+
 
 
 // Structs {{{
@@ -42,6 +45,13 @@ struct PortalEntry
 };
 
 
+struct PortalEntryList
+{
+    PortalEntry * entry;
+    PortalEntryList * next;
+};
+
+
 struct Portal
 {
     Pigeon * pigeon;
@@ -49,6 +59,8 @@ struct Portal
 
     const char * id;
     PortalEntry * topEntry;
+    PortalEntryList * streamList;
+
     bool enabled;
     bool stream;
     bool onchange;
@@ -84,6 +96,7 @@ static void writeMessage(
 );
 static PortalEntry ** findEntry(const char * key, PortalEntry **);
 static Portal ** findPortal(const char * id, Portal **);
+static void deleteEntryList(PortalEntryList *);
 
 // }}}
 
@@ -121,6 +134,7 @@ pigeonCreatePortal(Pigeon * pigeon, const char * id)
     portal->onchange = true;
 
     portal->topEntry = NULL;
+    portal->streamList = NULL;
     portal->portalLeft = NULL;
     portal->portalRight = NULL;
 
@@ -158,6 +172,14 @@ portalAdd(Portal * portal, PortalEntrySetup setup)
 
     PortalEntry ** entryPos = findEntry(entry->key, &portal->topEntry);
     *entryPos = entry;
+
+    if (entry->stream)
+    {
+        PortalEntryList * list = malloc(sizeof(PortalEntryList));
+        list->entry = entry;
+        list->next = portal->streamList;
+        portal->streamList = list;
+    }
 }
 
 
@@ -227,10 +249,89 @@ portalUpdate(Portal * portal, const char * key)
 
 
 void
+portalFlush(Portal * portal)
+{
+    PortalEntryList * list = portal->streamList;
+    char output[LINESIZE];
+    while (list != NULL)
+    {
+        snprintf(output, LINESIZE, "%s %s", output, list->entry->message);
+        list = list->next;
+    }
+    writeMessage(
+        portal->pigeon,
+        portal->id,
+        "",
+        output
+    );
+}
+
+
+void
 portalReady(Portal * portal)
 {
     portal->ready = true;
     checkReady(portal->pigeon);
+}
+
+
+void
+portalGetStreamKeys(Portal * portal, char * destination)
+{
+    PortalEntryList * list = portal->streamList;
+
+    // Using two buffers to separate read and written buffer
+    char buffer1[LINESIZE];
+    char buffer2[LINESIZE];
+    char * working = buffer1;
+    char * previous = buffer2;
+
+    while (list != NULL)
+    {
+        snprintf(working, LINESIZE, "%s %s", previous, list->entry->key);
+        list = list->next;
+
+        // Swap buffer pointers to read the written buffer
+        char * old = working;
+        working = previous;
+        previous = old;
+    }
+    // + 1 to remove initial space
+    strncpy(destination, previous + 1, LINESIZE);
+}
+
+
+bool
+portalSetStreamKeys(Portal * portal, char * sequence)
+{
+    PortalEntryList * list = malloc(sizeof(PortalEntryList));
+    PortalEntryList * newRoot = list;
+
+    // Try to create the list
+    char * key = strtok(sequence, " ");
+    while (true)
+    {
+        PortalEntry ** entryPtr = findEntry(key, &portal->topEntry);
+
+        if (entryPtr == NULL)
+        {
+            // Fail, stop, cleanup.
+            deleteEntryList(newRoot);
+            return false;
+        }
+        list->entry = *entryPtr;
+
+        key = strtok(NULL, " ");
+        if (key == NULL) break;
+
+        list->next = malloc(sizeof(PortalEntryList));
+        list = list->next;
+    }
+
+    deleteEntryList(portal->streamList);
+    portal->streamList = NULL;
+    portal->streamList = newRoot;
+    return true;
 }
 
 
@@ -291,6 +392,15 @@ portalBoolHandler(void * handle, char * msg, char * res)
     {
         *var = false;
     }
+}
+
+
+void
+portalStreamKeyHandler(void * handle, char * msg, char * res)
+{
+    Portal * portal = handle;
+    if (msg[0] == '\0') portalGetStreamKeys(portal, res);
+    else portalSetStreamKeys(portal, msg);
 }
 
 // }}}
@@ -455,6 +565,17 @@ findEntry(const char * key, PortalEntry ** topEntry)
         }
     }
     return visiting;
+}
+
+static void
+deleteEntryList(PortalEntryList * list)
+{
+    while (list != NULL)
+    {
+        PortalEntryList * old = list;
+        list = list->next;
+        free(old);
+    }
 }
 
 // }}}
