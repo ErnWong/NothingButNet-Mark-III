@@ -1,45 +1,28 @@
-# Universal C Makefile for MCU targets
-# Top-level template file to configure build
+#
+# Files
+#
 
-# Makefile for IFI VeX Cortex Microcontroller (STM32F103VD series)
-DEVICE=VexCortex
-# Libraries to include in the link (use -L and -l) e.g. -lm, -lmyLib
-LIBRARIES=$(ROOT)/firmware/libccos.a -lgcc -lm
-# Prefix for ARM tools (must be on the path)
-MCUPREFIX=arm-none-eabi-
-# Flags for the assembler
-MCUAFLAGS=-mthumb -mcpu=cortex-m3 -mlittle-endian
-# Flags for the compiler
-MCUCFLAGS=-mthumb -mcpu=cortex-m3 -mlittle-endian
-# Flags for the linker
-MCULFLAGS=-nostartfiles -Wl,-static -Bfirmware -Wl,-u,VectorTable -Wl,-T -Xlinker firmware/cortex.ld
-# Prepares the elf file by converting it to a binary that java can write
-MCUPREPARE=$(OBJCOPY) $(OUT) -O binary $(BINDIR)/$(OUTBIN)
-# Advanced sizing flags
-SIZEFLAGS=
-# Uploads program using java
-UPLOAD=@java -jar firmware/uniflash.jar vex $(BINDIR)/$(OUTBIN)
 
-# Advanced options
-ASMEXT=s
-CEXT=c
-CPPEXT=cpp
-HEXT=h
-INCLUDE=-I$(ROOT)/include -I$(ROOT)/src
-OUTBIN=output.bin
-OUTNAME=output.elf
+ifeq ($(OS),Windows_NT)
+	EXESUFFIX = .exe
+else
+	EXESUFFIX =
+endif
 
-# Flags for programs
-AFLAGS:=$(MCUAFLAGS)
-ARFLAGS:=$(MCUCFLAGS)
-CCFLAGS:=-c -Wall $(MCUCFLAGS) -Os -ffunction-sections -fsigned-char -fomit-frame-pointer -fsingle-precision-constant
-CFLAGS:=$(CCFLAGS) -std=gnu99 -Werror=implicit-function-declaration
-CPPFLAGS:=$(CCFLAGS) -fno-exceptions -fno-rtti -felide-constructors
-LDFLAGS:=-Wall $(MCUCFLAGS) $(MCULFLAGS) -Wl,--gc-sections
+INCLUDE := -I$(INCDIR) -I$(SRCDIR)
+BINDIRS := $(BINDIR) $(BINDIR_TEST)
 
-# Tools used in program
-AR:=$(MCUPREFIX)ar
-AS:=$(MCUPREFIX)as
-CC:=$(MCUPREFIX)gcc
-CPPCC:=$(MCUPREFIX)g++
-OBJCOPY:=$(MCUPREFIX)objcopy
+INCLUDE_TEST = $(INCLUDE) -I$(LIBDIR_TEST)
+
+HEADERS := \
+	$(wildcard $(SRCDIR)/*.$(HEXT)) \
+	$(wildcard $(INCDIR)/*.$(HEXT)) \
+	$(wildcard $(LIBDIR_TEST)/*.$(HEXT))
+
+ASMSRC := $(wildcard $(SRCDIR)/*.$(ASMEXT))
+CPPSRC := $(wildcard $(SRCDIR)/*.$(CPPEXT))
+CSRC   := $(wildcard $(SRCDIR)/*.$(CEXT))
+ASMOBJ := $(patsubst $(SRCDIR)/%.$(ASMEXT), $(BINDIR)/%.$(OEXT), $(ASMSRC))
+CPPOBJ := $(patsubst $(SRCDIR)/%.$(CPPEXT), $(BINDIR)/%.$(OEXT), $(CPPSRC))
+COBJ   := $(patsubst $(SRCDIR)/%.$(CEXT), $(BINDIR)/%.$(OEXT), $(CSRC))
+OUT := $(BINDIR)/$(OUTNAME)
