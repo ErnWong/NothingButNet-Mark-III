@@ -73,7 +73,7 @@ CPPFLAGS := $(CCFLAGS) -fno-exceptions -fno-rtti -felide-constructors
 LDFLAGS  := -Wall $(MCUCFLAGS) $(MCULFLAGS) -Wl,--gc-sections
 
 CFLAGS_TEST := -c -Wall -std=gnu99 -Werror=implicit-function-declaration
-LDFLAGS := -Wall --gc-sections
+LDFLAGS_TEST := -Wall -Wl,--gc-sections
 
 
 #
@@ -85,3 +85,4 @@ AS := $(MCUPREFIX)as
 CC := $(MCUPREFIX)gcc
 CPPCC := $(MCUPREFIX)g++
 OBJCOPY := $(MCUPREFIX)objcopy
+CC_TEST := gcc

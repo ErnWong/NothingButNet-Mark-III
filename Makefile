@@ -38,9 +38,9 @@ $(OUT): $(ASMOBJ) $(COBJ) $(CPPOBJ)
 	@$(MCUPREFIX)size $(SIZEFLAGS) $(OUT)
 	$(MCUPREPARE)
 
-$(OUT_TEST): $(BINDIR_TEST)/%$(EXESUFFIX): $(BINDIR)/%.$(OEXT) $(BINDIR_TEST)/%.$(OEXT_TEST) $(LIBOBJ_TEST)
+$(OUT_TEST): $(BINDIR_TEST)/%$(EXESUFFIX): $(BINDIR_TEST)/%.$(OEXT) $(BINDIR_TEST)/%.$(OEXT_TEST) $(LIBOBJ_TEST)
 	@echo LN $^ to $@
-	@$(CC) $(LDFLAGS_TEST) $^ -o $@
+	@$(CC_TEST) $(LDFLAGS_TEST) $^ -o $@
 
 # Assembly source file management
 $(ASMOBJ): $(BINDIR)/%.$(OEXT): $(SRCDIR)/%.$(ASMEXT) $(HEADERS)
@@ -56,10 +56,14 @@ $(CPPOBJ): $(BINDIR)/%.$(OEXT): $(SRCDIR)/%.$(CPPEXT) $(HEADERS)
 	@echo CPC $(INCLUDE) $<
 	@$(CPPCC) $(INCLUDE) $(CPPFLAGS) -o $@ $<
 
+$(COBJ_TEST): $(BINDIR_TEST)/%.$(OEXT): $(SRCDIR)/%.$(CEXT) $(HEADERS)
+	@echo CC $(INCLUDE_TEST) $<
+	@$(CC_TEST) $(INCLUDE_TEST) $(CFLAGS_TEST) -o $@ $<
+
 $(TESTOBJ): $(BINDIR_TEST)/%.$(OEXT_TEST): $(SRCDIR_TEST)/%.$(CEXT_TEST) $(HEADERS)
 	@echo CC $(INCLUDE_TEST) $<
-	@$(CC) $(INCLUDE_TEST) $(CFLAGS_TEST) -o $@ $<
+	@$(CC_TEST) $(INCLUDE_TEST) $(CFLAGS_TEST) -o $@ $<
 
 $(LIBOBJ_TEST): $(LIBSRC_TEST) $(HEADERS)
 	@echo CC $(INCLUDE_TEST) $<
-	@$(CC) $(INCLUDE_TEST) $(CFLAGS_TEST) -o $@ $<
+	@$(CC_TEST) $(INCLUDE_TEST) $(CFLAGS_TEST) -o $@ $<
