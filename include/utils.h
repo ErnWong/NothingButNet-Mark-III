@@ -1,6 +1,8 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <stdlib.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,8 +14,12 @@ extern "C" {
 // and returns the time difference in seconds.
 //
 float timeUpdate(unsigned long *microTime);
-
-int signOf(int x);
+int signOf(int);
+bool isWithin(float x, float size);
+char * trimSpaces(char *);
+char * stringCopy(char * destination, const char * source, size_t);
+bool stringToFloat(const char * string, float * dest);
+bool stringToUlong(const char * string, unsigned long * dest);
 
 // TODO: Move these ticks per rev to somewhere meaningful.
 

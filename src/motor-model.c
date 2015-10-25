@@ -1,3 +1,8 @@
+#if 0
+
+// {{{ Disabled for now
+
+
 // 
 // Motor model.
 //
@@ -180,3 +185,8 @@ void updateCurrent(MotorModel *m, float timeChange)
 	// Low-pass filter to remove transients
 	m->currentFiltered += (m->current - m->currentFiltered) * timeChange / m->smoothing;
 }
+
+
+// }}}
+
+#endif

@@ -1,3 +1,8 @@
+#if 0
+
+// {{{ Disabled for now
+
+
 // 
 // Motor model.
 //
@@ -99,4 +104,9 @@ float motorModelUpdate(MotorModel *m, int command, float rpm, float batteryVolta
 #endif
 
 // End include guard
+#endif
+
+
+// }}}
+
 #endif

@@ -1,3 +1,8 @@
+#if 0
+
+// {{{ Disabled for now
+
+
 // 
 // PTC temperature and tripping model.
 //
@@ -66,3 +71,8 @@ void updateTripStatus(Ptc *ptc)
 		ptc->tripped = false;
 	}
 }
+
+
+// }}}
+
+#endif

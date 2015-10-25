@@ -1,203 +1,470 @@
 #include "flywheel.h"
 
 #include <API.h>
+#include <string.h>
+#include "pigeon.h"
+#include "control.h"
 #include "utils.h"
+#include "shims.h"
 
 
+#define UNUSED(x) (void)(x)
 
 
-// TODO: tune success intervals, priorities, and checking period.
+// Typedefs {{{
 
-#define FLYWHEEL_READY_ERROR_INTERVAL 1.0f      // The +/- interval for which the error needs to lie to be considered 'ready'.
-#define FLYWHEEL_READY_DERIVATIVE_INTERVAL 1.0f // The +/- interval for which the measured derivative needs to lie to be considered 'ready'.
-
-#define FLYWHEEL_ACTIVE_PRIORITY 3              // Priority of the update task during active mode
-#define FLYWHEEL_READY_PRIORITY 2               // Priority of the update task during ready mode
-
-#define FLYWHEEL_ACTIVE_DELAY 20                // Delay for each update during active mode
-#define FLYWHEEL_READY_DELAY 200                // Delay for each update during ready mode
-
-#define FLYWHEEL_CHECK_READY_PERIOD 20          // Number of updates before rechecking its ready state
-
-
-
-typedef struct FlywheelData		// TODO: look at packing and alignment
+struct Flywheel
 {
+    Portal * portal;
 
-	float target;                       // Target speed in rpm.
-	float measured;                     // Measured speed in rpm.
-	float derivative;                   // Rate at which the measured speed had changed.
-	float error;                        // Difference in the target and the measured speed in rpm.
-	float action;                       // Controller output sent to the (smart) motors.
+    ControlSystem system;
+    ControlUpdater controlUpdate;
+    ControlResetter controlReset;
+    ControlHandle control;
 
-	int reading;                        // Previous encoder value.
-	unsigned long microTime;            // The time in microseconds of the last update.
-	float timeChange;                   // The time difference between updates, in seconds.
+    float measuredRaw;
 
-	float gain;                         // Gain proportional constant for integrating controller.
-	float gearing;                      // Ratio of flywheel RPM per encoder RPM.
-	float encoderTicksPerRevolution;    // Number of ticks each time the encoder completes one revolution
-	float smoothing;                    // Amount of smoothing applied to the flywheel RPM, which is the low-pass filter time constant in seconds.
+    float gearing;
+    float smoothing;
+    EncoderGetter encoderGet;
+    EncoderResetter encoderReset;
+    EncoderHandle encoder;
 
-	bool ready;                         // Whether the controller is in ready mode (true, flywheel at the right speed) or active mode (false), which affects task priority and update rate.
-	unsigned long delay;
+    MotorSetter motorSet[8];
+    MotorHandle motors[8];
 
-	Mutex targetMutex;                  // Mutex for updating the target speed.
-	TaskHandle task;                    // Handle to the controlling task.
-	Encoder encoder;                    // Encoder used to measure the rpm.
-}
-FlywheelData;
+    bool ready;
+    unsigned int priorityReady;
+    unsigned int priorityActive;
+    unsigned long frameDelay;
+    unsigned long frameDelayReady;
+    unsigned long frameDelayActive;
+    float thresholdError;
+    float thresholdDerivative;
+    int checkCycle;
 
+    Semaphore readySemaphore;
 
+    Mutex targetMutex;
+    TaskHandle task;
+};
 
-
-// Private functions, forward declarations.
-
-void update(FlywheelData *data);
-void measureRpm(FlywheelData *data, float timeChange);
-void controllerUpdate(FlywheelData *data, float timeChange);
-void checkReady(FlywheelData *data);
-void activate(FlywheelData *data);
-void readify(FlywheelData *data);
-
+/// }}}
 
 
-Flywheel flywheelInit(FlywheelSetup setup)
+
+
+// Private functions, forward declarations. {{{
+
+static void task(void * flywheelPointer);
+static void update(Flywheel*);
+static void updateSystem(Flywheel*);
+static void updateControl(Flywheel*);
+static void updateMotor(Flywheel*);
+static void checkReady(Flywheel*);
+static void activate(Flywheel*);
+static void readify(Flywheel*);
+static void initPortal(Flywheel*, FlywheelSetup);
+static void readyHandler(void * handle, char * message, char * response);
+
+// }}}
+
+
+
+
+// Public methods {{{
+
+Flywheel *
+flywheelInit(FlywheelSetup setup)
 {
-	FlywheelData *data = malloc(sizeof(FlywheelData));
+    Flywheel * flywheel = malloc(sizeof(Flywheel));
 
-	data->target = 0.0f;
-	data->measured = 0.0f;
-	data->derivative = 0.0f;
-	data->error = 0.0f;
-	data->action = 0.0f;
+    initPortal(flywheel, setup);
 
-	data->reading = 0;
-	data->microTime = micros();
-	data->timeChange = 0.0f;
+    flywheel->system.microTime = micros();
+    flywheel->system.dt = 0.0f;
+    flywheel->system.target = 0.0f;
+    flywheel->system.measured = 0.0f;
+    flywheel->system.derivative = 0.0f;
+    flywheel->system.error = 0.0f;
+    flywheel->system.action = 0.0f;
 
-	data->gain = setup.gain;
-	data->gearing = setup.gearing;
-	data->encoderTicksPerRevolution = setup.encoderTicksPerRevolution;
-	data->smoothing = setup.smoothing;
+    flywheel->controlUpdate = setup.controlUpdater;
+    flywheel->controlReset = setup.controlResetter;
+    flywheel->control = setup.control;
+    setup.controlSetup(setup.control, flywheel->portal);
 
-	data->ready = true;
-	data->delay = FLYWHEEL_READY_DELAY;
+    flywheel->gearing = setup.gearing;
+    flywheel->smoothing = setup.smoothing;
+    flywheel->encoderGet = setup.encoderGetter;
+    flywheel->encoderReset = setup.encoderResetter;
+    flywheel->encoder = setup.encoder;
 
-	data->targetMutex = mutexCreate();
-	data->task = taskCreate(task, 1000000, data, FLYWHEEL_READY_PRIORITY);	// TODO: What stack size should be set?
-	data->encoder = encoderInit(setup.encoderPortTop, setup.encoderPortBottom, setup.encoderReverse);
+    for (int i = 0; i < 8; i++)
+    {
+        flywheel->motorSet[i] = setup.motorSetters[i];
+        flywheel->motors[i] = setup.motors[i];
+    }
 
-	return (Flywheel)data;
-}
+    flywheel->ready = true;
+    flywheel->priorityReady = setup.priorityReady;
+    flywheel->priorityActive = setup.priorityActive;
 
+    flywheel->frameDelay = setup.frameDelayReady;
+    flywheel->frameDelayReady = setup.frameDelayReady;
+    flywheel->frameDelayActive = setup.frameDelayActive;
 
-// Sets target RPM.
-void flywheelSet(Flywheel flywheel, float rpm)
-{
-	FlywheelData *data = flywheel;
+    flywheel->thresholdError = setup.thresholdError;
+    flywheel->thresholdDerivative = setup.thresholdDerivative;
 
-	mutexTake(data->targetMutex, -1); // TODO: figure out how long the block time should be.
-	data->target = rpm;
-	mutexGive(data->targetMutex);
-	
-	if (data->ready)
-	{
-		activate(data);
-	}
-}
+    flywheel->checkCycle = setup.checkCycle;
 
+    flywheel->readySemaphore = semaphoreCreate();
 
-void task(void *flywheel)
-{
-	FlywheelData *data = flywheel;
-	int i = 0;
-	while (1)
-	{
-		i = FLYWHEEL_CHECK_READY_PERIOD;
-		while (i)
-		{
-			update(data);
-			delay(data->delay);
-			--i;
-		}
-		checkReady(data);
-	}
-}
+    flywheel->targetMutex = mutexCreate();
+    flywheel->task = NULL;
 
-
-void update(FlywheelData *data)
-{
-	float timeChange = timeUpdate(&data->microTime);
-	measureRpm(data, timeChange);
-	controllerUpdate(data, timeChange);
-	// TODO: update smart motor group.
+    return flywheel;
 }
 
 
-void measureRpm(FlywheelData *data, float timeChange)
+void
+flywheelReset(Flywheel *flywheel)
 {
-	int reading = encoderGet(data->encoder);
-	int ticks = reading - data->reading;
-
-	// Raw rpm
-	float rpm = ticks / data->encoderTicksPerRevolution * data->gearing / timeChange;
-	
-	// Low-pass filter
-	float measureChange = (rpm - data->measured) * timeChange / data->smoothing;
-
-	// Update
-	data->reading = reading;
-	data->measured += measureChange;
-	data->derivative = measureChange / timeChange;
+    flywheel->system.measured = 0.0f;
+    flywheel->system.derivative = 0.0f;
+    flywheel->system.error = 0.0f;
+    flywheel->system.action = 0.0f;
+    portalUpdate(flywheel->portal, "measured");
+    portalUpdate(flywheel->portal, "derivative");
+    portalUpdate(flywheel->portal, "error");
+    portalUpdate(flywheel->portal, "action");
+    flywheel->controlReset(flywheel->control);
+    flywheel->encoderReset(flywheel->encoder);
 }
 
 
-// Proportionally integral controller.
-void controllerUpdate(FlywheelData *data, float timeChange)
+void
+flywheelSet(Flywheel *flywheel, float rpm)
 {
-	// Calculate error
-	mutexTake(data->targetMutex, -1);	// TODO: Find out what block time is suitable, or needeed at all.
-	data->error = data->measured - data->target;
-	mutexGive(data->targetMutex);
+    mutexTake(flywheel->targetMutex, 100); // TODO: figure out how long the block time should be.
+    flywheel->system.target = rpm;
+    mutexGive(flywheel->targetMutex);
 
-	// Integrate
-	data->action += timeChange * data->gain * data->error;	// TODO: try take-back-half controller.
+    portalUpdate(flywheel->portal, "target");
+
+    if (flywheel->ready)
+    {
+        activate(flywheel);
+    }
+}
+
+void
+flywheelRun(Flywheel *flywheel)
+{
+    if (!flywheel->task)
+    {
+        flywheelReset(flywheel);
+        flywheel->task = taskCreate(task, TASK_DEFAULT_STACK_SIZE, flywheel, flywheel->priorityActive);
+    }
+}
+
+void
+waitUntilFlywheelReady(Flywheel *flywheel, const unsigned long blockTime)
+{
+    semaphoreTake(flywheel->readySemaphore, blockTime);
+}
+
+// }}}
+
+
+
+
+// Private functions {{{
+
+static void
+task(void *flywheelPointer)
+{
+    Flywheel *flywheel = flywheelPointer;
+    int i = 0;
+    while (1)
+    {
+        i = flywheel->checkCycle;
+        while (i)
+        {
+            update(flywheel);
+            delay(flywheel->frameDelay);
+            --i;
+        }
+        checkReady(flywheel);
+    }
 }
 
 
-void checkReady(FlywheelData *data)
+static void
+update(Flywheel *flywheel)
 {
-	bool errorReady = -FLYWHEEL_READY_ERROR_INTERVAL < data->error < FLYWHEEL_READY_ERROR_INTERVAL;
-	bool derivativeReady = -FLYWHEEL_READY_DERIVATIVE_INTERVAL < data->derivative < FLYWHEEL_READY_DERIVATIVE_INTERVAL;
-	bool ready = errorReady && derivativeReady;
-
-	if (ready && !data->ready)
-	{
-		readify(data);
-	}
-	else if (!ready && data->ready)
-	{
-		activate(data);
-	}
+    updateSystem(flywheel);
+    updateControl(flywheel);
+    updateMotor(flywheel);
+    portalFlush(flywheel->portal);
 }
 
 
-// Faster updates, higher priority, signals active.
-void activate(FlywheelData *data)
+static void
+updateSystem(Flywheel *flywheel)
 {
-	data->ready = false;
-	data->delay = FLYWHEEL_ACTIVE_DELAY;
-	taskPrioritySet(data->task, FLYWHEEL_ACTIVE_PRIORITY);
-	// TODO: Signal not ready?
+    float dt = timeUpdate(&flywheel->system.microTime);
+    flywheel->system.dt = dt;
+
+    // Raw rpm
+    float rpm = flywheel->encoderGet(flywheel->encoder);
+    rpm *= flywheel->gearing;
+
+    // Low-pass filter
+    float measureChange = (rpm - flywheel->system.measured);
+    measureChange *= dt / flywheel->smoothing;
+
+    // Update
+    flywheel->measuredRaw = rpm;
+    flywheel->system.measured += measureChange;
+    flywheel->system.derivative = measureChange / dt;
+
+    // Calculate error
+    float error = flywheel->system.measured - flywheel->system.target;
+    mutexTake(flywheel->targetMutex, -1);
+    // TODO: Find out what block time is suitable, or needeed at all.
+    flywheel->system.error = error;
+    mutexGive(flywheel->targetMutex);
+
+    portalUpdate(flywheel->portal, "dt");
+    portalUpdate(flywheel->portal, "raw");
+    portalUpdate(flywheel->portal, "measured");
+    portalUpdate(flywheel->portal, "derivative");
+    portalUpdate(flywheel->portal, "error");
 }
 
 
-// Slower updates, lower priority, signals ready.
-void readify(FlywheelData *data)
+static void
+updateControl(Flywheel *flywheel)
 {
-	data->ready = true;
-	data->delay = FLYWHEEL_READY_DELAY;
-	taskPrioritySet(data->task, FLYWHEEL_READY_PRIORITY);
-	// TODO: Signal ready?
+    flywheel->controlUpdate(flywheel->control, flywheel->system);
+
+    if (flywheel->system.action > 127)
+    {
+        flywheel->system.action = 127;
+    }
+    if (flywheel->system.action < -127)
+    {
+        flywheel->system.action = -127;
+    }
+    portalUpdate(flywheel->portal, "action");
 }
+
+
+static void
+updateMotor(Flywheel *flywheel)
+{
+    for (int i = 0; flywheel->motorSet[i] && i < 8; i++)
+    {
+        void * handle = flywheel->motors[i];
+        int command = flywheel->system.action;
+        flywheel->motorSet[i](handle, command);
+    }
+}
+
+
+static void
+checkReady(Flywheel *flywheel)
+{
+    bool errorReady =
+        isWithin(flywheel->system.error, flywheel->thresholdError);
+    bool derivativeReady =
+        isWithin(flywheel->system.derivative, flywheel->thresholdDerivative);
+    bool ready = errorReady && derivativeReady;
+
+    if (ready && !flywheel->ready)
+    {
+        readify(flywheel);
+    }
+    else if (!ready && flywheel->ready)
+    {
+        activate(flywheel);
+    }
+}
+
+
+static void
+activate(Flywheel *flywheel)
+{
+    flywheel->ready = false;
+    flywheel->frameDelay = flywheel->frameDelayActive;
+    if (flywheel->task)
+    {
+        taskPrioritySet(flywheel->task, flywheel->priorityActive);
+    }
+    portalUpdate(flywheel->portal, "ready");
+    portalUpdate(flywheel->portal, "delay");
+
+    // TODO: Signal not ready?
+}
+
+
+static void
+readify(Flywheel *flywheel)
+{
+    flywheel->ready = true;
+    flywheel->frameDelay = flywheel->frameDelayReady;
+    if (flywheel->task)
+    {
+        taskPrioritySet(flywheel->task, flywheel->priorityReady);
+    }
+    portalUpdate(flywheel->portal, "ready");
+    portalUpdate(flywheel->portal, "delay");
+
+    semaphoreGive(flywheel->readySemaphore);
+}
+
+
+// }}}
+
+
+
+// Pigeon setup {{{
+
+static void
+initPortal(Flywheel * flywheel, FlywheelSetup setup)
+{
+    flywheel->portal = pigeonCreatePortal(setup.pigeon, setup.id);
+
+    PortalEntrySetup setups[] =
+    {
+        {
+            .key = "time",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->system.microTime
+        },
+        {
+            .key = "dt",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.dt
+        },
+        {
+            .key = "target",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.target,
+            .stream = true,
+            .onchange = true
+        },
+        {
+            .key = "measured",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.measured,
+            .stream = true
+        },
+        {
+            .key = "derivatve",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.derivative
+        },
+        {
+            .key = "error",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.error
+        },
+        {
+            .key = "action",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->system.action,
+            .stream = true
+        },
+        {
+            .key = "raw",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->measuredRaw
+        },
+        {
+            .key = "gearing",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->gearing
+        },
+        {
+            .key = "smoothing",
+            .handler = portalFloatHandler,
+            .handle = &flywheel->smoothing
+        },
+        {
+            .key = "ready",
+            .handler = readyHandler,
+            .handle = flywheel,
+            .onchange = true
+        },
+        {
+            .key = "priority-ready",
+            .handler = portalUintHandler,
+            .handle = &flywheel->priorityReady
+        },
+        {
+            .key = "priority-active",
+            .handler = portalUintHandler,
+            .handle = &flywheel->priorityActive
+        },
+        {
+            .key = "delay",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->frameDelay,
+            .onchange = true
+        },
+        {
+            .key = "delay-ready",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->frameDelayReady
+        },
+        {
+            .key = "delay-active",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->frameDelayActive
+        },
+        {
+            .key = "threshold-error",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->thresholdError
+        },
+        {
+            .key = "threshold-derivative",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->thresholdDerivative
+        },
+        {
+            .key = "check-cycle",
+            .handler = portalUlongHandler,
+            .handle = &flywheel->checkCycle
+        },
+        {
+            .key = "keys",
+            .handler = portalStreamKeyHandler,
+            .handle = &flywheel->portal
+        },
+
+        // End terminating struct
+        {
+            .key = "~",
+            .handler = NULL,
+            .handle = NULL
+        }
+    };
+    portalAddBatch(flywheel->portal, setups);
+}
+
+void readyHandler(void * handle, char * message, char * response)
+{
+    Flywheel * flywheel = handle;
+    if (message[0] == '\0')
+    {
+        strcpy(response, flywheel->ready? "true" : "false");
+    }
+    else if (strcmp(message, "true") == 0) readify(flywheel);
+    else if (strcmp(message, "false") == 0) activate(flywheel);
+}
+
+// }}}

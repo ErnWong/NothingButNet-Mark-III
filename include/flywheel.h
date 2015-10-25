@@ -2,6 +2,9 @@
 #define FLYWHEEL_H_
 
 #include <stdbool.h>
+#include "pigeon.h"
+#include "control.h"
+#include "shims.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,24 +12,71 @@ extern "C" {
 
 
 
-typedef void* Flywheel;
+// Typedefs {{{
 
-typedef struct FlywheelSetup
+struct Flywheel;
+typedef struct Flywheel Flywheel;
+
+typedef enum
+FlywheelController
 {
-	float gearing;                      // Ratio of flywheel RPM per encoder RPM.
-	float gain;                         // Gain proportional constant for integrating controller.
-	float smoothing;                    // Amount of smoothing applied to the flywheel RPM, as the low-pass time constant in seconds.
-	float encoderTicksPerRevolution;    // Number of ticks each time the encoder completes one revolution
-	unsigned char encoderPortTop;       // Digital port number where the encoder's top wire is connected.
-	unsigned char encoderPortBottom;    // Digital port number where the encoder's bottom wire is connected.  
-	bool encoderReverse;                // Whether the encoder values should be reversed.
+    FLYWHEEL_BANGBANG,
+    FLYWHEEL_PID,
+    FLYWHEEL_TBH
+}
+FlywheelController;
+
+typedef struct
+FlywheelSetup
+{
+    char * id;
+    Pigeon * pigeon;
+
+    float gearing;
+    float smoothing;
+
+    ControlSetup controlSetup;
+    ControlUpdater controlUpdater;
+    ControlResetter controlResetter;
+    void * control;
+
+    EncoderGetter encoderGetter;
+    EncoderResetter encoderResetter;
+    void * encoder;
+
+    MotorSetter motorSetters[8];
+    void * motors[8];
+
+    unsigned int priorityReady;
+    unsigned int priorityActive;
+    unsigned long frameDelayReady;
+    unsigned long frameDelayActive;
+
+    float thresholdError;
+    float thresholdDerivative;
+    int checkCycle;
 }
 FlywheelSetup;
 
-Flywheel flywheelInit(FlywheelSetup setup);
+// }}}
 
-// Sets target RPM
-void flywheelSet(Flywheel flywheel, float rpm);
+
+
+// Methods {{{
+
+Flywheel *
+flywheelInit(FlywheelSetup setup);
+
+void
+flywheelRun(Flywheel *flywheel);
+
+void
+flywheelSet(Flywheel *flywheel, float rpm);
+
+void
+waitUntilFlywheelReady(Flywheel *flywheel, const unsigned long blockTime);
+
+// }}}
 
 
 

@@ -70,6 +70,8 @@ flags = [
 './include',
 '-I',
 './src',
+'-I',
+'./tests/libtap'
 ]
 
 
