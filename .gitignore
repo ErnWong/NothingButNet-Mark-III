@@ -1,42 +1,9 @@
-# Base created using https://www.gitignore.io/api/c++,windows
-
-### C++ ###
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
 
 ### Weird python config floating around ###
 *.pyc
 
 ### Build results ###
 bin/
-obj/
 
 
 ### Windows ###
