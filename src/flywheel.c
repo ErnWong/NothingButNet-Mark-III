@@ -458,6 +458,9 @@ initPortal(Flywheel * flywheel, FlywheelSetup setup)
 
 void readyHandler(void * handle, char * message, char * response)
 {
+    if (handle == NULL) return;
+    if (message == NULL) return;
+    if (response == NULL) return;
     Flywheel * flywheel = handle;
     if (message[0] == '\0')
     {

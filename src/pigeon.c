@@ -338,6 +338,9 @@ portalSetStreamKeys(Portal * portal, char * sequence)
 void
 portalFloatHandler(void * handle, char * msg, char * res)
 {
+    if (handle == NULL) return;
+    if (msg == NULL) return;
+    if (res == NULL) return;
     float * var = handle;
     if (msg[0] == '\0') sprintf(res, "%f", *var);
     else
@@ -352,6 +355,9 @@ portalFloatHandler(void * handle, char * msg, char * res)
 void
 portalUintHandler(void * handle, char * msg, char * res)
 {
+    if (handle == NULL) return;
+    if (msg == NULL) return;
+    if (res == NULL) return;
     unsigned int * var = handle;
     if (msg[0] == '\0') sprintf(res, "%u", *var);
     else
@@ -368,6 +374,9 @@ portalUintHandler(void * handle, char * msg, char * res)
 void
 portalUlongHandler(void * handle, char * msg, char * res)
 {
+    if (handle == NULL) return;
+    if (msg == NULL) return;
+    if (res == NULL) return;
     unsigned long * var = handle;
     if (msg[0] == '\0') sprintf(res, "%lu", *var);
     else
@@ -382,6 +391,9 @@ portalUlongHandler(void * handle, char * msg, char * res)
 void
 portalBoolHandler(void * handle, char * msg, char * res)
 {
+    if (handle == NULL) return;
+    if (msg == NULL) return;
+    if (res == NULL) return;
     bool * var = handle;
     if (msg[0] == '\0') strcpy(res, *var ? "true" : "false");
     else if (strcmp(msg, "true") == 0)
@@ -398,6 +410,9 @@ portalBoolHandler(void * handle, char * msg, char * res)
 void
 portalStreamKeyHandler(void * handle, char * msg, char * res)
 {
+    if (handle == NULL) return;
+    if (msg == NULL) return;
+    if (res == NULL) return;
     Portal * portal = handle;
     if (msg[0] == '\0') portalGetStreamKeys(portal, res);
     else portalSetStreamKeys(portal, msg);
