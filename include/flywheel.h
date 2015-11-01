@@ -38,14 +38,14 @@ FlywheelSetup
     ControlSetup controlSetup;
     ControlUpdater controlUpdater;
     ControlResetter controlResetter;
-    void * control;
+    ControlHandle control;
 
     EncoderGetter encoderGetter;
     EncoderResetter encoderResetter;
-    void * encoder;
+    EncoderHandle encoder;
 
     MotorSetter motorSetters[8];
-    void * motors[8];
+    MotorHandle motors[8];
 
     unsigned int priorityReady;
     unsigned int priorityActive;
