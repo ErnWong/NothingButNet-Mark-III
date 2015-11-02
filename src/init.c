@@ -28,6 +28,7 @@ void initialize()
     //  - Init sensors, LCDs, Global vars, IMEs
     Encoder fwAboveEncoder = encoderInit(1, 2, false);
     Encoder fwBelowEncoder = encoderInit(3, 4, false);
+
     FlywheelSetup fwBelowSetup =
     {
         .id = "flywheel-above",
@@ -68,6 +69,7 @@ void initialize()
         .checkCycle = 20
     };
     fwAbove = flywheelInit(fwBelowSetup);
+
     FlywheelSetup fwAboveSetup =
     {
         .id = "flywheel-above",
@@ -106,6 +108,7 @@ void initialize()
         .checkCycle = 20
     };
     fwAbove = flywheelInit(fwAboveSetup);
+
     DriveSetup driveSetup =
     {
         .motorSetters =
