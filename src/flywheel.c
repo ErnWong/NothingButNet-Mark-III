@@ -248,7 +248,7 @@ updateSystem(Flywheel *flywheel)
 static void
 updateControl(Flywheel *flywheel)
 {
-    flywheel->controlUpdate(flywheel->control, flywheel->system);
+    flywheel->controlUpdate(flywheel->control, &flywheel->system);
 
     if (flywheel->system.action > 127)
     {
