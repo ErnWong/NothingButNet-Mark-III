@@ -31,7 +31,7 @@ void initialize()
 
     FlywheelSetup fwBelowSetup =
     {
-        .id = "flywheel-above",
+        .id = "flywheel-below",
         .pigeon = pigeon,
 
         .gearing = 5.0f,
@@ -68,7 +68,7 @@ void initialize()
         .thresholdDerivative = 1.0f,
         .checkCycle = 20
     };
-    fwAbove = flywheelInit(fwBelowSetup);
+    fwBelow = flywheelInit(fwBelowSetup);
 
     FlywheelSetup fwAboveSetup =
     {
