@@ -124,6 +124,8 @@ flywheelInit(FlywheelSetup setup)
     flywheel->targetMutex = mutexCreate();
     flywheel->task = NULL;
 
+    portalReady(flywheel->portal);
+
     return flywheel;
 }
 
