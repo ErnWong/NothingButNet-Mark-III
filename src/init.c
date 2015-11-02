@@ -125,4 +125,6 @@ void initialize()
     drive = driveInit(driveSetup);
     driveAdd(drive, tankStyle);
     driveAdd(drive, arcadeRightStyle);
+
+    pigeonReady(pigeon);
 }
