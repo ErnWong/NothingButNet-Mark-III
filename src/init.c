@@ -40,7 +40,7 @@ void initialize()
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
         .controlResetter = tbhReset,
-        .control = tbhInit(0.2, aimer->estimator),
+        .control = tbhInit(0.2, tbhDummyEstimator),
 
         .encoderGetter = encoderGetter,
         .encoderResetter = encoderResetter,
@@ -81,7 +81,7 @@ void initialize()
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
         .controlResetter = tbhReset,
-        .control = tbhInit(0.2, aimer->estimator),
+        .control = tbhInit(0.2, tbhDummyEstimator),
 
         .encoderGetter = encoderGetter,
         .encoderResetter = encoderResetter,
