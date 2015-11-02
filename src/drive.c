@@ -37,6 +37,7 @@ driveInit(DriveSetup setup)
         drive->motorSet[i] = setup.motorSetters[i];
         drive->motors[i] = setup.motors[i];
     }
+    drive->control = NULL;
     return drive;
 }
 
@@ -45,12 +46,21 @@ driveAdd(Drive * drive, DriveStyle style)
 {
     DriveControl * control = malloc(sizeof(DriveControl));
     control->update = style;
-    DriveControl * head = drive->control;
-    DriveControl * tail = head->previous;
-    control->next = head;
-    control->previous = tail;
-    head->previous = control;
-    tail->next = control;
+    if (drive->control == NULL)
+    {
+        control->next = control;
+        control->previous = control;
+        drive->control = control;
+    }
+    else
+    {
+        DriveControl * head = drive->control;
+        DriveControl * tail = head->previous;
+        control->next = head;
+        control->previous = tail;
+        head->previous = control;
+        tail->next = control;
+    }
 }
 
 void
