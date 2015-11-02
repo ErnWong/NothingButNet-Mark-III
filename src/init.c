@@ -124,5 +124,5 @@ void initialize()
     };
     drive = driveInit(driveSetup);
     driveAdd(drive, tankStyle);
-    driveAdd(drive, arcadeStyle);
+    driveAdd(drive, arcadeRightStyle);
 }
