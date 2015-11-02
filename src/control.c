@@ -202,6 +202,13 @@ tbhSetup(ControlHandle handle, Portal * portal)
     portalAddBatch(portal, setups);
 }
 
+float
+tbhDummyEstimator(float target)
+{
+    UNUSED(target);
+    return 0;
+}
+
 // }}}
 
 

@@ -60,6 +60,9 @@ tbhUpdate(ControlHandle, ControlSystem*);
 void
 tbhSetup(ControlHandle, Portal*);
 
+float
+tbhDummyEstimator(float target);
+
 void *
 bangBangInit
 (
