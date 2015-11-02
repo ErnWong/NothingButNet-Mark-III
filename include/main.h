@@ -4,6 +4,7 @@
 #include <API.h>
 
 #include "drive.h"
+#include "pigeon.h"
 #include "flywheel.h"
 
 #ifdef __cplusplus
