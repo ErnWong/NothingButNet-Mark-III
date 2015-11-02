@@ -78,6 +78,7 @@ struct Pigeon
     PigeonOut puts;
     PigeonMillis millis;
     TaskHandle task;
+    bool ready;
 };
 
 // }}}
@@ -116,6 +117,8 @@ pigeonInit(PigeonIn getter, PigeonOut putter, PigeonMillis clock)
     pigeon->task = NULL;
     pigeon->topPortal = NULL;
 
+    pigeon->ready = false;
+
     return pigeon;
 }
 
@@ -142,6 +145,13 @@ pigeonCreatePortal(Pigeon * pigeon, const char * id)
     *location = portal;
 
     return portal;
+}
+
+void
+pigeonReady(Pigeon * pigeon)
+{
+    pigeon->ready = true;
+    checkReady(pigeon);
 }
 
 // }}}
@@ -474,6 +484,7 @@ task(void * pigeonData)
 static void
 checkReady(Pigeon * pigeon)
 {
+    if (!pigeon->ready) return;
     if (isPortalBranchReady(pigeon->topPortal))
     {
         pigeon->task = taskCreate(
