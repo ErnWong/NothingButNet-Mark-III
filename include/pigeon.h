@@ -87,6 +87,9 @@ Portal *
 pigeonCreatePortal(Pigeon *, const char * id);
 
 void
+pigeonReady(Pigeon*);
+
+void
 portalFloatHandler(void * handle, char * message, char * response);
 
 void
