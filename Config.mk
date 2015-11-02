@@ -10,6 +10,8 @@ TESTDIR = $(ROOT)/tests
 SRCDIR_TEST = $(ROOT)/tests
 BINDIR_TEST = $(ROOT)/tests/bin
 LIBDIR_TEST = $(ROOT)/tests/libtap
+SRCDIR_SIZE = $(ROOT)/tests
+BINDIR_SIZE = $(ROOT)/tests/bin
 
 LIBSRC_TEST = $(LIBDIR_TEST)/tap.c
 LIBOBJ_TEST = $(BINDIR_TEST)/tap.o
@@ -28,9 +30,12 @@ HEXT = h
 OEXT = o
 CEXT_TEST = test.c
 OEXT_TEST = test.o
+CEXT_SIZE = size.c
+OEXT_SIZE = size.o
 
 OUTBIN = output.bin
 OUTNAME = output.elf
+OUTNAME_SIZE = size$(EXESUFFIX)
 
 
 #
@@ -74,6 +79,8 @@ LDFLAGS  := -Wall $(MCUCFLAGS) $(MCULFLAGS) -Wl,--gc-sections
 
 CFLAGS_TEST := -c -Wall -std=gnu99 -Werror=implicit-function-declaration
 LDFLAGS_TEST := -Wall -Wl,--gc-sections
+CFLAGS_SIZE := $(CFLAGS_TEST)
+LDFLAGS_SIZE := $(LDFLAGS_TEST)
 
 
 #
@@ -86,3 +93,4 @@ CC := $(MCUPREFIX)gcc
 CPPCC := $(MCUPREFIX)g++
 OBJCOPY := $(MCUPREFIX)objcopy
 CC_TEST := gcc
+CC_SIZE := gcc

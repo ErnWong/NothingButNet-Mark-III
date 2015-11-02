@@ -71,6 +71,8 @@ flags = [
 '-I',
 './src',
 '-I',
+'./tests',
+'-I',
 './tests/libtap'
 ]
 

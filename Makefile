@@ -5,7 +5,7 @@ ROOT = .
 -include $(ROOT)/Config.mk
 -include $(ROOT)/common.mk
 
-.PHONY: all clean upload test run_test _force_look
+.PHONY: all clean upload size test run_test _force_look
 
 
 all: $(BINDIRS) $(OUT)
@@ -15,10 +15,13 @@ clean:
 	-rm -f $(OUT)
 	-rm -rf $(BINDIR)
 	-rm -rf $(BINDIR_TEST)
+	-rm -rf $(BINDIR_SIZE)
 
 # Uploads program to device
 upload: all
 	$(UPLOAD)
+
+size: $(BINDIRS) $(OUT_SIZE)
 
 test: $(BINDIRS) $(OUT_TEST) run_test
 
@@ -42,6 +45,10 @@ $(OUT_TEST): $(BINDIR_TEST)/%$(EXESUFFIX): $(BINDIR_TEST)/%.$(OEXT) $(BINDIR_TES
 	@echo LN $^ to $@
 	@$(CC_TEST) $(LDFLAGS_TEST) $^ -o $@
 
+$(OUT_SIZE): $(COBJ_SIZE)
+	@echo LN $^ to $@
+	@$(CC_SIZE) $(LDFLAGS_SIZE) $^ -o $@
+
 # Assembly source file management
 $(ASMOBJ): $(BINDIR)/%.$(OEXT): $(SRCDIR)/%.$(ASMEXT) $(HEADERS)
 	@echo AS $<
@@ -55,6 +62,10 @@ $(COBJ): $(BINDIR)/%.$(OEXT): $(SRCDIR)/%.$(CEXT) $(HEADERS)
 $(CPPOBJ): $(BINDIR)/%.$(OEXT): $(SRCDIR)/%.$(CPPEXT) $(HEADERS)
 	@echo CPC $(INCLUDE) $<
 	@$(CPPCC) $(INCLUDE) $(CPPFLAGS) -o $@ $<
+
+$(COBJ_SIZE): $(BINDIR_SIZE)/%.$(OEXT_SIZE): $(SRCDIR_SIZE)/%.$(CEXT_SIZE) $(HEADERS)
+	@echo CC $(INCLUDE_SIZE) $<
+	@$(CC_SIZE) $(INCLUDE_SIZE) $(CFLAGS_SIZE) -o $@ $<
 
 $(COBJ_TEST): $(BINDIR_TEST)/%.$(OEXT): $(SRCDIR)/%.$(CEXT) $(HEADERS)
 	@echo CC $(INCLUDE_TEST) $<
