@@ -45,6 +45,9 @@ pidReset(ControlHandle);
 float
 pidUpdate(ControlHandle, ControlSystem*);
 
+void
+pidSetup(ControlHandle, Portal*);
+
 ControlHandle
 tbhInit(float gain, TbhEstimator);
 
@@ -53,6 +56,9 @@ tbhReset(ControlHandle);
 
 float
 tbhUpdate(ControlHandle, ControlSystem*);
+
+void
+tbhSetup(ControlHandle, Portal*);
 
 void *
 bangBangInit
@@ -68,6 +74,9 @@ bangBangReset(ControlHandle);
 
 float
 bangBangUpdate(ControlHandle, ControlSystem*);
+
+void
+bangBangSetup(ControlHandle, Portal*);
 
 
 
