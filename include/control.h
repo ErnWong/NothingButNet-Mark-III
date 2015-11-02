@@ -25,7 +25,7 @@ ControlSystem;
 typedef void * ControlHandle;
 
 typedef float
-(*ControlUpdater)(ControlHandle, ControlSystem);
+(*ControlUpdater)(ControlHandle, ControlSystem*);
 
 typedef void
 (*ControlResetter)(ControlHandle);
