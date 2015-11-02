@@ -3,7 +3,6 @@
 
 #include <API.h>
 
-#include "utils.h"
 #include "drive.h"
 #include "flywheel.h"
 
