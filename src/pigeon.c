@@ -261,6 +261,9 @@ portalUpdate(Portal * portal, const char * key)
 void
 portalFlush(Portal * portal)
 {
+    if (portal == NULL) return;
+    if (!portal->enabled) return;
+
     PortalEntryList * list = portal->streamList;
     char output[LINESIZE];
     while (list != NULL)
