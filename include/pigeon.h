@@ -10,7 +10,7 @@ extern "C" {
 
 
 #define PIGEON_ALIGNSIZE 4
-#define PIGEON_LINESIZE 128
+#define PIGEON_LINESIZE 80
 
 
 
