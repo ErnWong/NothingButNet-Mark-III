@@ -628,13 +628,13 @@ allocateMessage(Pigeon * pigeon, PortalEntry * entry)
 {
     if (pigeon->messageUsers[pigeon->vacantIndex] != NULL)
     {
-        PortalEntry * oldEntry = *pigeon->messageUsers[pigeon->vacantIndex];
+        PortalEntry * oldEntry = pigeon->messageUsers[pigeon->vacantIndex];
         oldEntry->message = NULL;
         pigeon->messageUsers[pigeon->vacantIndex] = NULL;
     }
     pigeon->messageUsers[pigeon->vacantIndex] = entry;
-    entry->message = &pigeon->messages[pigeon->vacantIndex];
-    pigeon->messages[pigeon->vacantIndex] = '\0';
+    entry->message = &pigeon->messages[pigeon->vacantIndex][0];
+    pigeon->messages[pigeon->vacantIndex][0] = '\0';
 
     pigeon->vacantIndex++;
     if (pigeon->vacantIndex >= MAXMSG) pigeon->vacantIndex = 0;
