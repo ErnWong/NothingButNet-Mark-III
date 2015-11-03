@@ -26,6 +26,7 @@ void initialize()
     // Note: no joystick, no link, exit promptly
     // Purpose:
     //  - Init sensors, LCDs, Global vars, IMEs
+    /*
     Encoder fwAboveEncoder = encoderInit(1, 2, false);
     Encoder fwBelowEncoder = encoderInit(3, 4, false);
 
@@ -108,7 +109,7 @@ void initialize()
         .checkCycle = 20
     };
     fwAbove = flywheelInit(fwAboveSetup);
-
+*/
     DriveSetup driveSetup =
     {
         .motorSetters =
@@ -118,13 +119,14 @@ void initialize()
         },
         .motors =
         {
-            motorGetHandle(7, false),
-            motorGetHandle(8, false)
+            motorGetHandle(8, false),
+            motorGetHandle(7, false)
         }
     };
     drive = driveInit(driveSetup);
     driveAdd(drive, tankStyle);
     driveAdd(drive, arcadeRightStyle);
 
-    pigeonReady(pigeon);
+    //pigeonReady(pigeon);
+
 }

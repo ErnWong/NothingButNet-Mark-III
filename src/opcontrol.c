@@ -7,8 +7,8 @@
 
 void operatorControl()
 {
-    flywheelRun(fwAbove);
-    flywheelRun(fwBelow);
+    //flywheelRun(fwAbove);
+    //flywheelRun(fwBelow);
 	while (1)
     {
         driveUpdate(drive);
