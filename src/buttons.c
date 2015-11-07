@@ -40,7 +40,7 @@ static void callHandlers(HandlerList*);
 static HandlerList * initHandlerList(ButtonHandler, ButtonHandle);
 static void addToHandlerList(HandlerList * item, HandlerList ** destination);
 
-Button buttons[JOY_NUMOFSLOTS][JOY_NUMOFBUTTONS] = {0};
+static Button buttons[JOY_NUMOFSLOTS][JOY_NUMOFBUTTONS] = {0};
 
 void
 buttonOnchange(
