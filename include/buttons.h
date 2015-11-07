@@ -13,8 +13,8 @@ typedef void (*ButtonHandler)(ButtonHandle);
 typedef enum
 JoystickSlot
 {
-    JOYSLOT1,
-    JOYSLOT2,
+    JOY_SLOT1,
+    JOY_SLOT2,
     JOY_NUMOFSLOTS
 }
 JoystickSlot;
