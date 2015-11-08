@@ -45,7 +45,7 @@ struct Flywheel
 
     Semaphore readySemaphore;
 
-    Mutex targetMutex;
+    Mutex mutex;
     TaskHandle task;
 };
 
@@ -66,6 +66,8 @@ static void activate(Flywheel*);
 static void readify(Flywheel*);
 static void initPortal(Flywheel*, FlywheelSetup);
 static void readyHandler(void * handle, char * message, char * response);
+
+static void printDebugInfo(Flywheel*);
 
 // }}}
 
@@ -92,7 +94,7 @@ flywheelInit(FlywheelSetup setup)
     flywheel->controlUpdate = setup.controlUpdater;
     flywheel->controlReset = setup.controlResetter;
     flywheel->control = setup.control;
-    setup.controlSetup(setup.control, flywheel->portal);
+    //setup.controlSetup(setup.control, flywheel->portal);
 
     flywheel->gearing = setup.gearing;
     flywheel->smoothing = setup.smoothing;
@@ -121,7 +123,7 @@ flywheelInit(FlywheelSetup setup)
 
     flywheel->readySemaphore = semaphoreCreate();
 
-    flywheel->targetMutex = mutexCreate();
+    flywheel->mutex = mutexCreate();
     flywheel->task = NULL;
 
     portalReady(flywheel->portal);
@@ -131,27 +133,29 @@ flywheelInit(FlywheelSetup setup)
 
 
 void
-flywheelReset(Flywheel *flywheel)
+flywheelReset(Flywheel * flywheel)
 {
     flywheel->system.measured = 0.0f;
     flywheel->system.derivative = 0.0f;
     flywheel->system.error = 0.0f;
     flywheel->system.action = 0.0f;
+
     portalUpdate(flywheel->portal, "measured");
     portalUpdate(flywheel->portal, "derivative");
     portalUpdate(flywheel->portal, "error");
     portalUpdate(flywheel->portal, "action");
+
     flywheel->controlReset(flywheel->control);
     flywheel->encoderReset(flywheel->encoder);
 }
 
 
 void
-flywheelSet(Flywheel *flywheel, float rpm)
+flywheelSet(Flywheel * flywheel, float rpm)
 {
-    mutexTake(flywheel->targetMutex, 100); // TODO: figure out how long the block time should be.
+    mutexTake(flywheel->mutex, -1);
     flywheel->system.target = rpm;
-    mutexGive(flywheel->targetMutex);
+    mutexGive(flywheel->mutex);
 
     portalUpdate(flywheel->portal, "target");
 
@@ -162,17 +166,22 @@ flywheelSet(Flywheel *flywheel, float rpm)
 }
 
 void
-flywheelRun(Flywheel *flywheel)
+flywheelRun(Flywheel * flywheel)
 {
-    if (!flywheel->task)
+    if (flywheel->task != NULL)
     {
         flywheelReset(flywheel);
-        flywheel->task = taskCreate(task, TASK_DEFAULT_STACK_SIZE, flywheel, flywheel->priorityActive);
+        flywheel->task = taskCreate(
+            task,
+            TASK_DEFAULT_STACK_SIZE,
+            flywheel,
+            flywheel->priorityActive
+        );
     }
 }
 
 void
-waitUntilFlywheelReady(Flywheel *flywheel, const unsigned long blockTime)
+waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime)
 {
     semaphoreTake(flywheel->readySemaphore, blockTime);
 }
@@ -185,9 +194,9 @@ waitUntilFlywheelReady(Flywheel *flywheel, const unsigned long blockTime)
 // Private functions {{{
 
 static void
-task(void *flywheelPointer)
+task(void * flywheelPointer)
 {
-    Flywheel *flywheel = flywheelPointer;
+    Flywheel * flywheel = flywheelPointer;
     int i = 0;
     while (1)
     {
@@ -195,6 +204,7 @@ task(void *flywheelPointer)
         while (i)
         {
             update(flywheel);
+            printDebugInfo(flywheel);
             delay(flywheel->frameDelay);
             --i;
         }
@@ -203,24 +213,37 @@ task(void *flywheelPointer)
 }
 
 
+// Temporary debugging measures:
+// (Should be replaced with pigeon once pigeon is stabalized)
 static void
-update(Flywheel *flywheel)
+printDebugInfo(Flywheel * flywheel)
 {
-    updateSystem(flywheel);
-    updateControl(flywheel);
-    updateMotor(flywheel);
-    portalFlush(flywheel->portal);
+    printf("flywheel rpm: %f\n", flywheel->system.measured);
+    printf("flywheel action: %f\n", flywheel->system.action);
+    printf("flywheel raw: %f\n", flywheel->measuredRaw);
 }
 
 
 static void
-updateSystem(Flywheel *flywheel)
+update(Flywheel * flywheel)
+{
+    mutexTake(flywheel->mutex, -1);
+    updateSystem(flywheel);
+    updateControl(flywheel);
+    updateMotor(flywheel);
+    portalFlush(flywheel->portal);
+    mutexGive(flywheel->mutex);
+}
+
+
+static void
+updateSystem(Flywheel * flywheel)
 {
     float dt = timeUpdate(&flywheel->system.microTime);
     flywheel->system.dt = dt;
 
     // Raw rpm
-    float rpm = flywheel->encoderGet(flywheel->encoder);
+    float rpm = flywheel->encoderGet(flywheel->encoder).rpm;
     rpm *= flywheel->gearing;
 
     // Low-pass filter
@@ -234,10 +257,7 @@ updateSystem(Flywheel *flywheel)
 
     // Calculate error
     float error = flywheel->system.measured - flywheel->system.target;
-    mutexTake(flywheel->targetMutex, -1);
-    // TODO: Find out what block time is suitable, or needeed at all.
     flywheel->system.error = error;
-    mutexGive(flywheel->targetMutex);
 
     portalUpdate(flywheel->portal, "dt");
     portalUpdate(flywheel->portal, "raw");
@@ -248,7 +268,7 @@ updateSystem(Flywheel *flywheel)
 
 
 static void
-updateControl(Flywheel *flywheel)
+updateControl(Flywheel * flywheel)
 {
     flywheel->controlUpdate(flywheel->control, &flywheel->system);
 
@@ -265,7 +285,7 @@ updateControl(Flywheel *flywheel)
 
 
 static void
-updateMotor(Flywheel *flywheel)
+updateMotor(Flywheel * flywheel)
 {
     for (int i = 0; flywheel->motorSet[i] && i < 8; i++)
     {
@@ -277,7 +297,7 @@ updateMotor(Flywheel *flywheel)
 
 
 static void
-checkReady(Flywheel *flywheel)
+checkReady(Flywheel * flywheel)
 {
     bool errorReady =
         isWithin(flywheel->system.error, flywheel->thresholdError);
@@ -297,7 +317,7 @@ checkReady(Flywheel *flywheel)
 
 
 static void
-activate(Flywheel *flywheel)
+activate(Flywheel * flywheel)
 {
     flywheel->ready = false;
     flywheel->frameDelay = flywheel->frameDelayActive;
@@ -313,7 +333,7 @@ activate(Flywheel *flywheel)
 
 
 static void
-readify(Flywheel *flywheel)
+readify(Flywheel * flywheel)
 {
     flywheel->ready = true;
     flywheel->frameDelay = flywheel->frameDelayReady;

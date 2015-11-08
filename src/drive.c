@@ -66,9 +66,8 @@ driveAdd(Drive * drive, DriveStyle style)
 void
 driveAddBatch(Drive * drive, DriveStyle * style)
 {
-    while (true)
+    while (*style != NULL)
     {
-        if (*style == NULL) break;
         driveAdd(drive, *style);
         style++;
     }

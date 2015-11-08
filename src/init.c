@@ -12,6 +12,12 @@ Drive * drive = NULL;
 Flywheel * fwAbove = NULL;
 Flywheel * fwBelow = NULL;
 
+static char *
+pigeonGets(char * buffer, int maxSize);
+
+static void
+pigeonPuts(const char * message);
+
 void initializeIO()
 {
     // Note: kernal mode, scheduler paused
@@ -26,9 +32,10 @@ void initialize()
     // Note: no joystick, no link, exit promptly
     // Purpose:
     //  - Init sensors, LCDs, Global vars, IMEs
-    /*
     Encoder fwAboveEncoder = encoderInit(1, 2, false);
     Encoder fwBelowEncoder = encoderInit(3, 4, false);
+    pigeon = pigeonInit(pigeonGets, pigeonPuts, millis);
+    /*
 
     FlywheelSetup fwBelowSetup =
     {
@@ -70,6 +77,7 @@ void initialize()
         .checkCycle = 20
     };
     fwBelow = flywheelInit(fwBelowSetup);
+    */
 
     FlywheelSetup fwAboveSetup =
     {
@@ -96,7 +104,7 @@ void initialize()
         .motors =
         {
             motorGetHandle(4, false),
-            motorGetHandle(5, false)
+            motorGetHandle(5, true)
         },
 
         .priorityReady = 2,
@@ -109,7 +117,7 @@ void initialize()
         .checkCycle = 20
     };
     fwAbove = flywheelInit(fwAboveSetup);
-*/
+
     DriveSetup driveSetup =
     {
         .motorSetters =
@@ -127,6 +135,18 @@ void initialize()
     driveAdd(drive, tankStyle);
     driveAdd(drive, arcadeRightStyle);
 
-    //pigeonReady(pigeon);
+    pigeonReady(pigeon);
 
+}
+
+static char *
+pigeonGets(char * buffer, int maxSize)
+{
+    return fgets(buffer, maxSize, stdout);
+}
+
+static void
+pigeonPuts(const char * message)
+{
+    puts(message);
 }

@@ -135,6 +135,8 @@ pigeonInit(PigeonIn getter, PigeonOut putter, PigeonMillis clock)
 Portal *
 pigeonCreatePortal(Pigeon * pigeon, const char * id)
 {
+    if (pigeon == NULL) return NULL;
+
     Portal * portal = malloc(sizeof(Portal));
 
     portal->pigeon = pigeon;
@@ -172,6 +174,7 @@ pigeonReady(Pigeon * pigeon)
 void
 portalAdd(Portal * portal, PortalEntrySetup setup)
 {
+    if (portal == NULL) return;
     if (portal->ready) return;
 
     PortalEntry * entry = malloc(sizeof(PortalEntry));

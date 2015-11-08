@@ -11,15 +11,30 @@ extern "C" {
 
 
 
-#define ENCODER_TICKS_PER_REV 360
-#define IME_269_GEARING 30.056
-#define IME_393_TORQUE_GEARING 39.2
-#define IME_393_SPEED_GEARING 24.5
+extern const float SHIM_REVOLUTION;
+
+extern const float TICKS_PER_REV_ENCODER;
+extern const float TICKS_PER_REV_IME_269;
+extern const float TICKS_PER_REV_IME_393_TORQUE;
+extern const float TICKS_PER_REV_IME_393_SPEED;
+
+extern const float ENCODER_GEARING_IME_269;
+extern const float ENCODER_GEARING_IME_393_TORQUE;
+extern const float ENCODER_GEARING_IME_393_SPEED;
+
 
 typedef void * EncoderHandle;
 typedef void * MotorHandle;
 
-typedef float
+typedef struct
+EncoderReading
+{
+    float angle;
+    float rpm;
+}
+EncoderReading;
+
+typedef EncoderReading
 (*EncoderGetter)(EncoderHandle handle);
 
 typedef void
@@ -37,7 +52,7 @@ MotorType
 }
 MotorType;
 
-float
+EncoderReading
 encoderGetter(EncoderHandle);
 
 void
@@ -46,7 +61,7 @@ encoderResetter(EncoderHandle);
 void *
 encoderGetHandle(Encoder);
 
-float
+EncoderReading
 imeGetter(EncoderHandle);
 
 void
