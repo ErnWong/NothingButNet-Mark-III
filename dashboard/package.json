@@ -1,0 +1,22 @@
+{
+    "name": "pigeon-dashboard",
+    "version": "0.0.0",
+    "description": "A dashboard gui interface for your robot's pigeon communication",
+    "author": "Ernest Wong <ewon521@gmail.com>",
+    "scripts": {
+        "build-js": "browserify browser/main.js > public/bundle.js",
+        "build": "npm run build-js",
+        "watch-js": "wathify browser/main.js -o public/bundle.js -dv",
+        "watch": "watch-js"
+    },
+    "dependencies": {
+        "express": "4.13.x",
+        "socket.io": "1.3.x",
+        "socket.io-client": "1.3.x",
+        "browserify": "12.0.x"
+    },
+    "devDependencies": {
+        "watchify": "3.6.x"
+    },
+    "license": "MIT"
+}
