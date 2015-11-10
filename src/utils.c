@@ -18,10 +18,10 @@ timeUpdate(unsigned long *microTime)
 	unsigned long newMicroTime = micros();
 	float dt = (newMicroTime - *microTime) / 1000000.0f;
 
-    printf("In timeUpdate\n");
-    printf("new microtime: %lu\n", newMicroTime);
-    printf("old microtime: %lu\n", *microTime);
-    printf("delta time:    %f\n", dt);
+    //printf("In timeUpdate\n");
+    //printf("new microtime: %lu\n", newMicroTime);
+    //printf("old microtime: %lu\n", *microTime);
+    //printf("delta time:    %f\n", dt);
 
 	*microTime = newMicroTime;
 

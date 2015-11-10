@@ -56,6 +56,9 @@ EncoderReading
 encoderGetter(EncoderHandle);
 
 void
+encoderDebug(EncoderHandle);
+
+void
 encoderResetter(EncoderHandle);
 
 void *

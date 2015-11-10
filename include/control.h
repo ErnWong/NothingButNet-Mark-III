@@ -24,8 +24,11 @@ ControlSystem;
 
 typedef void * ControlHandle;
 
+/*debug*/
+#include "shims.h"
+
 typedef float
-(*ControlUpdater)(ControlHandle, ControlSystem*);
+(*ControlUpdater)(ControlHandle, ControlSystem*, /*debug*/ EncoderHandle);
 
 typedef void
 (*ControlResetter)(ControlHandle);
@@ -55,7 +58,7 @@ void
 tbhReset(ControlHandle);
 
 float
-tbhUpdate(ControlHandle, ControlSystem*);
+tbhUpdate(ControlHandle, ControlSystem*, /*debug*/ EncoderHandle);
 
 void
 tbhSetup(ControlHandle, Portal*);

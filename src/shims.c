@@ -30,13 +30,23 @@ encoderGetter(EncoderHandle handle)
 {
     EncoderShim * shim = handle;
 
+    //puts("\nBefore encoder get update");
+    //encoderDebug(handle);
+    puts("\n");
+    puts("-----------------------------------------------------");
+    puts("encoder shim");
+    printf(" - start: %d\n", (int)shim);
+    printf(" - end:   %d\n", (int)shim + sizeof(EncoderShim));
+    puts("-----------------------------------------------------");
+    //puts("\n In encoderGet");
+    //printf("Address of enc: %d\n", (int)shim);
     float timeChange = timeUpdate(&shim->microTime);
     int angle = encoderGet(shim->encoder);
-    printf("encodershim prevangle: %d\n", shim->angle);
+   // printf("encodershim prevangle: %d\n", shim->angle);
     int ticks = angle - shim->angle;
-    printf("encodershim ticks: %d\n", ticks);
-    printf("encodershim angle: %d\n", angle);
-    printf("encodershim timechange: %f\n", timeChange);
+    //printf("encodershim ticks: %d\n", ticks);
+    //printf("encodershim angle: %d\n", angle);
+    //printf("encodershim timechange: %f\n", timeChange);
 
     shim->angle = angle;
     float rpm = ticks / TICKS_PER_REV_ENCODER / timeChange;
@@ -45,7 +55,23 @@ encoderGetter(EncoderHandle handle)
         .angle = ((float)angle) / TICKS_PER_REV_ENCODER * SHIM_REVOLUTION,
         .rpm = rpm
     };
+    //puts("\nAfter encoder get update");
+    //encoderDebug(handle);
     return reading;
+}
+
+void
+encoderDebug(EncoderHandle handle)
+{
+    EncoderShim * shim = handle;
+    delay(1000);
+    puts("");
+    puts("------------------------------------------------------");
+    puts("Inside the encoder debugging centre");
+    printf("encoder shim angle: %d\n", shim->angle);
+    printf("encoder shim time:  %lu\n", shim->microTime);
+    puts("------------------------------------------------------");
+    puts("");
 }
 
 void
