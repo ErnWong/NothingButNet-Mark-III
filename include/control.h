@@ -24,11 +24,8 @@ ControlSystem;
 
 typedef void * ControlHandle;
 
-/*debug*/
-#include "shims.h"
-
 typedef float
-(*ControlUpdater)(ControlHandle, ControlSystem*, /*debug*/ EncoderHandle);
+(*ControlUpdater)(ControlHandle, ControlSystem*);
 
 typedef void
 (*ControlResetter)(ControlHandle);

@@ -134,67 +134,20 @@ tbhReset(ControlHandle handle)
     portalUpdate(tbh->portal, "crossed");
 }
 
-/* debug */
-#include "shims.h"
-
 float
-tbhUpdate(ControlHandle handle, ControlSystem * system, /* DEBUG: */EncoderHandle enchandle)
+tbhUpdate(ControlHandle handle, ControlSystem * system)
 {
-    //puts("\nStart of tbhUpdate");
-    //encoderDebug(enchandle);
     Tbh * tbh = handle;
     system->action += system->error * system->dt * tbh->gain;
-    //puts("\nAfter tbh sys.action update");
-    //encoderDebug(enchandle);
-    //puts("Before if:");
-    //printf("system->target:  %f\n", system->target);
-    //printf("tbh->lastTarget: %f\n", tbh->lastTarget);
-    //encoderDebug(enchandle);
-    //puts("Double check...:");
-    //printf("system->target:  %f\n", system->target);
-    //printf("tbh->lastTarget: %f\n", tbh->lastTarget);
 
-    //puts("\nBefore comparison");
-    //encoderDebug(enchandle);
-
-    //printf("\nComparing sys->target != tbh->lastTarget: %s", system->target != tbh->lastTarget ? "true" : "false");
-
-    //puts("\nAfter comparison");
-    //encoderDebug(enchandle);
-    //
-
-    delay(1000);
-    puts("\n\nMemory allocs");
-    puts("");
-    puts("-----------------------------------------------------");
-    puts("tbh");
-    printf(" - start: %d\n", (int)tbh);
-    printf(" - end:   %d\n", (int)tbh + sizeof(Tbh));
-    puts("-----------------------------------------------------");
-    //puts("\n In tbhUpdate");
-    //printf("Address of tbh: %d\n", (int)tbh);
-
-
-
+    // TODO: this never equals, use range instead
     if (system->target != tbh->lastTarget)
     {
-        //puts("\nInside if, before crossed update");
-        //encoderDebug(enchandle);
-        //printf("system->target:  %f\n", system->target);
-        //printf("tbh->lastTarget: %f\n", tbh->lastTarget);
         tbh->crossed = false;
-        //puts("\nAfter setting crossed to false, before target");
-        //encoderDebug(enchandle);
         tbh->lastTarget = system->target;
-        //puts("\nAfter that, before target/cross portal update");
-        //encoderDebug(enchandle);
         portalUpdate(tbh->portal, "crossed");
         portalUpdate(tbh->portal, "last-target");
-        //puts("\nAfter target/cross portal update");
-        //encoderDebug(enchandle);
     }
-    //puts("\nMiddle of tbhUpdate");
-    //encoderDebug(enchandle);
     if (signOf(system->error) != signOf(tbh->lastError))
     {
         if (!tbh->crossed)

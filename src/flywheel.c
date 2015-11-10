@@ -169,12 +169,8 @@ flywheelSet(Flywheel * flywheel, float rpm)
 void
 flywheelRun(Flywheel * flywheel)
 {
-    //puts("Starting flywheel task");
-    //printf("Flywheel->task = %d\n", (int)flywheel->task);
-    //printf("NULL = %d\n", (int)NULL);
     if (flywheel->task == NULL)
     {
-        //puts("Creating task...");
         flywheelReset(flywheel);
         flywheel->task = taskCreate(
             task,
@@ -207,19 +203,10 @@ task(void * flywheelPointer)
     while (true)
     {
         i = flywheel->checkCycle;
-        //printf("Flywheel task: counter i = %d\n", i);
         while (i)
         {
-            //puts("\nBefore flywheel update");
-            //encoderDebug(flywheel->encoder);
             update(flywheel);
-            //puts("\nAfter flywheel update");
-            //encoderDebug(flywheel->encoder);
             //printDebugInfo(flywheel);
-            //puts("\nAfter update all");
-            //printf("Address of encoder handle: %d\n", (int)flywheel->encoder);
-            //printf("Address of control handle: %d\n", (int)flywheel->control);
-            //delay(1000);
             delay(flywheel->frameDelay);
             --i;
         }
@@ -244,17 +231,9 @@ update(Flywheel * flywheel)
 {
     mutexTake(flywheel->mutex, -1);
     updateSystem(flywheel);
-    //puts("\nBefore control update");
-    //encoderDebug(flywheel->encoder);
     updateControl(flywheel);
-    //puts("\nAfter control update");
-    //encoderDebug(flywheel->encoder);
     updateMotor(flywheel);
-    //puts("\nBefore portal flush");
-    //encoderDebug(flywheel->encoder);
     portalFlush(flywheel->portal);
-    //puts("\nAfter portal flush");
-    //encoderDebug(flywheel->encoder);
     mutexGive(flywheel->mutex);
 }
 
@@ -266,17 +245,8 @@ updateSystem(Flywheel * flywheel)
     flywheel->system.dt = dt;
 
     // Raw rpm
-    //puts("\nBefore Encoder Get");
-    //encoderDebug(flywheel->encoder);
-    //puts("\nIn updateSystem");
-    //printf("Address of encoder handle: %d\n", (int)flywheel->encoder);
-    //printf("Address of control handle: %d\n", (int)flywheel->control);
     float rpm = flywheel->encoderGet(flywheel->encoder).rpm;
-    //puts("\nAfter Encoder Get");
-    //encoderDebug(flywheel->encoder);
     rpm *= flywheel->gearing;
-    //puts("\nAfter flywheel gearing");
-    //encoderDebug(flywheel->encoder);
 
     // Low-pass filter
     float measureChange = (rpm - flywheel->system.measured);
@@ -291,29 +261,18 @@ updateSystem(Flywheel * flywheel)
     float error = flywheel->system.measured - flywheel->system.target;
     flywheel->system.error = error;
 
-    //puts("\nBefore portal update system");
-    //encoderDebug(flywheel->encoder);
-
     portalUpdate(flywheel->portal, "dt");
     portalUpdate(flywheel->portal, "raw");
     portalUpdate(flywheel->portal, "measured");
     portalUpdate(flywheel->portal, "derivative");
     portalUpdate(flywheel->portal, "error");
-
-    //puts("\nAfter portal update system");
-    //encoderDebug(flywheel->encoder);
 }
 
 
 static void
 updateControl(Flywheel * flywheel)
 {
-    //puts("\n In updateControl");
-    //printf("Address of encoder handle: %d\n", (int)flywheel->encoder);
-    //printf("Address of control handle: %d\n", (int)flywheel->control);
-    flywheel->controlUpdate(flywheel->control, &flywheel->system, flywheel->encoder);
-    //puts("\nAfter control update handled, before clipping");
-    //encoderDebug(flywheel->encoder);
+    flywheel->controlUpdate(flywheel->control, &flywheel->system);
 
     if (flywheel->system.action > 127)
     {
@@ -323,11 +282,7 @@ updateControl(Flywheel * flywheel)
     {
         flywheel->system.action = -127;
     }
-    //puts("\nAfter clipping, before portal action update");
-    //encoderDebug(flywheel->encoder);
     portalUpdate(flywheel->portal, "action");
-    //puts("\nAfter portal action update");
-    //encoderDebug(flywheel->encoder);
 }
 
 
