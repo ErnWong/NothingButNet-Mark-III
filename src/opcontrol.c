@@ -11,6 +11,7 @@ static void turnOffFlywheel(ButtonHandle);
 
 void operatorControl()
 {
+    getchar();
     buttonsInit();
     buttonOndown(JOY_SLOT1, JOY_5U, turnOnFlywheel, NULL);
     buttonOndown(JOY_SLOT1, JOY_5D, turnOffFlywheel, NULL);
@@ -18,7 +19,6 @@ void operatorControl()
 	while (true)
     {
         buttonsUpdate();
-        printf("Motor is at %d\n", motorGet(1));
         driveUpdate(drive);
 		delay(20);
 	}

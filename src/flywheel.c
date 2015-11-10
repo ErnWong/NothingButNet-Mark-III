@@ -128,6 +128,7 @@ flywheelInit(FlywheelSetup setup)
 
     portalReady(flywheel->portal);
 
+
     return flywheel;
 }
 
@@ -168,7 +169,7 @@ flywheelSet(Flywheel * flywheel, float rpm)
 void
 flywheelRun(Flywheel * flywheel)
 {
-    if (flywheel->task != NULL)
+    if (flywheel->task == NULL)
     {
         flywheelReset(flywheel);
         flywheel->task = taskCreate(
@@ -196,15 +197,16 @@ waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime)
 static void
 task(void * flywheelPointer)
 {
+    puts("Inside task beginning");
     Flywheel * flywheel = flywheelPointer;
     int i = 0;
-    while (1)
+    while (true)
     {
         i = flywheel->checkCycle;
         while (i)
         {
             update(flywheel);
-            printDebugInfo(flywheel);
+            //printDebugInfo(flywheel);
             delay(flywheel->frameDelay);
             --i;
         }

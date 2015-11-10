@@ -13,10 +13,11 @@
 // and returns the time difference in seconds.
 //
 float
-timeUpdate(unsigned long *microTime)
+timeUpdate(unsigned long * microTime)
 {
 	unsigned long newMicroTime = micros();
 	float dt = (newMicroTime - *microTime) / 1000000.0f;
+
 	*microTime = newMicroTime;
 
 	return dt;

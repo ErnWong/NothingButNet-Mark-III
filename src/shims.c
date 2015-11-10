@@ -32,11 +32,7 @@ encoderGetter(EncoderHandle handle)
 
     float timeChange = timeUpdate(&shim->microTime);
     int angle = encoderGet(shim->encoder);
-    printf("encodershim prevangle: %d\n", shim->angle);
     int ticks = angle - shim->angle;
-    printf("encodershim ticks: %d\n", ticks);
-    printf("encodershim angle: %d\n", angle);
-    printf("encodershim timechange: %f\n", timeChange);
 
     shim->angle = angle;
     float rpm = ticks / TICKS_PER_REV_ENCODER / timeChange;
@@ -56,10 +52,10 @@ encoderResetter(EncoderHandle handle)
     encoderReset(shim->encoder);
 }
 
-void *
+EncoderHandle
 encoderGetHandle(Encoder encoder)
 {
-    EncoderShim * shim = malloc(sizeof(EncoderHandle));
+    EncoderShim * shim = malloc(sizeof(EncoderShim));
     shim->encoder = encoder;
     shim->angle = encoderGet(encoder);
     shim->microTime = micros();

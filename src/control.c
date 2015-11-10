@@ -112,7 +112,7 @@ Tbh;
 ControlHandle
 tbhInit(float gain, TbhEstimator estimator)
 {
-    Tbh * tbh = malloc(sizeof(tbh));
+    Tbh * tbh = malloc(sizeof(Tbh));
     tbh->portal = NULL;
     tbh->estimator = estimator;
     tbh->gain = gain;
@@ -139,6 +139,8 @@ tbhUpdate(ControlHandle handle, ControlSystem * system)
 {
     Tbh * tbh = handle;
     system->action += system->error * system->dt * tbh->gain;
+
+    // TODO: this never equals, use range instead
     if (system->target != tbh->lastTarget)
     {
         tbh->crossed = false;
