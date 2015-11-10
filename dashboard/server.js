@@ -50,7 +50,6 @@ function connect(port) {
         connectedPorts[port] = sp;
         sp.on('data', function (data) {
             var info = decode(data);
-            if (!info) return;
             io.to(port).emit('port-data', info);
         });
     });
@@ -59,26 +58,39 @@ function connect(port) {
         io.to(port).emit('port-close');
     });
 }
+
+
 function decode(input) {
-    var input = input.trim();
-    var sigStart = input.indexOf('[');
-    var sigMid = -1;
-    var sigEnd = -1;
+    input = input.trim();
     var timestamp = '';
     var channel = '';
     var message = '';
-    if (sigStart < 0) return false;
+
+    var sigStart = input.indexOf('[');
+    var sigMid = -1;
+    var sigEnd = -1;
+
+    if (sigStart < 0) return createInfo(timestamp, channel, message, raw);
+
     sigMid = input.indexOf('|', sigStart);
     sigEnd = input.indexOf(']', sigStart);
-    if (sigEnd < 0) return false;
+
+    if (sigEnd < 0) return createInfo(timestamp, channel, message, raw);
     if (sigMid > sigEnd) sigMid = sigStart;
+
     timestamp = input.substring(sigStart + 1, sigMid).trim();
     channel = input.substring(sigMid + 1, sigEnd).trim();
     message = input.substring(sigEnd + 1).trim();
+
+    return createInfo(timestamp, channel, message, raw);
+}
+
+
+function createInfo(timestamp, channel, message, raw) {
     return {
         timestamp: +timestamp,
         channel: channel,
-        message: message
+        message: message,
+        raw: raw
     };
 }
-
