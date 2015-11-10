@@ -55,7 +55,7 @@ void
 tbhReset(ControlHandle);
 
 float
-tbhUpdate(ControlHandle, ControlSystem*, /*debug*/ EncoderHandle);
+tbhUpdate(ControlHandle, ControlSystem*);
 
 void
 tbhSetup(ControlHandle, Portal*);
