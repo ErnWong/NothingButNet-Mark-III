@@ -112,7 +112,7 @@ Tbh;
 ControlHandle
 tbhInit(float gain, TbhEstimator estimator)
 {
-    Tbh * tbh = malloc(sizeof(tbh));
+    Tbh * tbh = malloc(sizeof(Tbh));
     tbh->portal = NULL;
     tbh->estimator = estimator;
     tbh->gain = gain;
