@@ -2,6 +2,9 @@
 node_modules
 npm-debug.log
 
+### Dashboard build ###
+dashboard/public/bundle.js
+
 ### Weird python config floating around ###
 *.pyc
 
