@@ -34,13 +34,14 @@ io.on('connection', function (socket) {
         connectedPorts[port].close();
         attachedPort = '';
     });
-    socket.on('send-command', function(command) {
+    socket.on('send-command', function (command) {
         if (!attachedPort) return;
         if (!connectedPorts[attachedPort]) return;
         var sp = connectedPorts[attachedPort];
         sp.write(command.channel + " " + command.message);
     });
 });
+
 function connect(port) {
     var sp = new SerialPort(port, {
         baudrate:  115200,
