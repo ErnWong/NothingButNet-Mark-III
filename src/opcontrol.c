@@ -19,7 +19,6 @@ void operatorControl()
 	while (true)
     {
         buttonsUpdate();
-        //printf("Motor is at %d\n", motorGet(5));
         driveUpdate(drive);
 		delay(20);
 	}
@@ -30,7 +29,6 @@ static void
 turnOnFlywheel(ButtonHandle handle)
 {
     UNUSED(handle);
-    puts("Turning on flywheel");
     flywheelSet(fwAbove, 800);
 }
 
@@ -38,6 +36,5 @@ static void
 turnOffFlywheel(ButtonHandle handle)
 {
     UNUSED(handle);
-    puts("Turning off flywheel");
     flywheelSet(fwAbove, 0);
 }
