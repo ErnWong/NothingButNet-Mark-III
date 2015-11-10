@@ -1,3 +1,5 @@
+### Node ###
+node_modules
 
 ### Weird python config floating around ###
 *.pyc
