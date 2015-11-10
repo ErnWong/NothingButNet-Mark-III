@@ -10,6 +10,6 @@ socket.on('port-data', function(data) {
     console.log("- Raw:", data.raw);
 });
 
-windows.dashboard = {
+window.dashboard = {
     socket: socket
 };
