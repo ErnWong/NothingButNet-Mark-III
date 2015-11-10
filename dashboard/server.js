@@ -16,7 +16,7 @@ io.on('connection', function (socket) {
     console.log('New dashboard client connected');
     var attachedPort = '';
     socket.on('list-ports', function () {
-        serialPort.list(function (err, ports) {
+        serialport.list(function (err, ports) {
             socket.emit('port-list', ports);
         });
     });
