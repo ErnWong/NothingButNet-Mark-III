@@ -56,10 +56,10 @@ encoderResetter(EncoderHandle handle)
     encoderReset(shim->encoder);
 }
 
-void *
+EncoderHandle
 encoderGetHandle(Encoder encoder)
 {
-    EncoderShim * shim = malloc(sizeof(EncoderHandle));
+    EncoderShim * shim = malloc(sizeof(EncoderShim));
     shim->encoder = encoder;
     shim->angle = encoderGet(encoder);
     shim->microTime = micros();

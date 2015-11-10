@@ -32,8 +32,8 @@ void initialize()
     // Note: no joystick, no link, exit promptly
     // Purpose:
     //  - Init sensors, LCDs, Global vars, IMEs
-    Encoder fwAboveEncoder = encoderInit(1, 2, false);
-    Encoder fwBelowEncoder = encoderInit(3, 4, false);
+    Encoder fwBelowEncoder = encoderInit(1, 2, false);
+    Encoder fwAboveEncoder = encoderInit(3, 4, false);
     pigeon = pigeonInit(pigeonGets, pigeonPuts, millis);
     /*
 
@@ -103,8 +103,8 @@ void initialize()
         },
         .motors =
         {
-            motorGetHandle(4, false),
-            motorGetHandle(5, true)
+            motorGetHandle(5, false),
+            motorGetHandle(6, true)
         },
 
         .priorityReady = 2,

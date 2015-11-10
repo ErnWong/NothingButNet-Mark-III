@@ -168,8 +168,12 @@ flywheelSet(Flywheel * flywheel, float rpm)
 void
 flywheelRun(Flywheel * flywheel)
 {
-    if (flywheel->task != NULL)
+    //puts("Starting flywheel task");
+    //printf("Flywheel->task = %d\n", (int)flywheel->task);
+    //printf("NULL = %d\n", (int)NULL);
+    if (flywheel->task == NULL)
     {
+        //puts("Creating task...");
         flywheelReset(flywheel);
         flywheel->task = taskCreate(
             task,
@@ -196,13 +200,16 @@ waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime)
 static void
 task(void * flywheelPointer)
 {
+    puts("Inside task beginning");
     Flywheel * flywheel = flywheelPointer;
     int i = 0;
-    while (1)
+    while (true)
     {
         i = flywheel->checkCycle;
+        //printf("Flywheel task: counter i = %d\n", i);
         while (i)
         {
+            puts("In flywheel");
             update(flywheel);
             printDebugInfo(flywheel);
             delay(flywheel->frameDelay);
