@@ -94,7 +94,7 @@ flywheelInit(FlywheelSetup setup)
     flywheel->controlUpdate = setup.controlUpdater;
     flywheel->controlReset = setup.controlResetter;
     flywheel->control = setup.control;
-    //setup.controlSetup(setup.control, flywheel->portal);
+    setup.controlSetup(setup.control, flywheel->portal);
 
     flywheel->gearing = setup.gearing;
     flywheel->smoothing = setup.smoothing;
