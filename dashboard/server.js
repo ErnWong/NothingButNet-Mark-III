@@ -5,15 +5,15 @@ var io = require('socket.io')(server);
 var serialport = require('serialport');
 var SerialPort = serialport.SerialPort;
 
-var _ require('lodash');
-
 server.listen(80);
+console.log('Serving dashboard at http://localhost:80/');
 
 app.use(express.static('public'));
 
 var connectedPorts = Object.create(null);
 
 io.on('connection', function (socket) {
+    console.log('New dashboard client connected');
     var attachedPort = '';
     socket.on('list-ports', function () {
         serialPort.list(function (err, ports) {
@@ -48,6 +48,7 @@ function connect(port) {
         parser: serialport.parsers.readline('\n')
     });
     sp.on('open', function () {
+        console.log('Port opened: %s', port);
         connectedPorts[port] = sp;
         sp.on('data', function (data) {
             var info = decode(data);
@@ -55,6 +56,7 @@ function connect(port) {
         });
     });
     sp.on('close', function () {
+        console.log('Port closed: %s', port);
         delete connectedPorts[port];
         io.to(port).emit('port-close');
     });
