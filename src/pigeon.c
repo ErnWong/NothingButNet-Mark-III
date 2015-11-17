@@ -161,6 +161,7 @@ pigeonCreatePortal(Pigeon * pigeon, const char * id)
 void
 pigeonReady(Pigeon * pigeon)
 {
+    if (pigeon == NULL) return;
     pigeon->ready = true;
     checkReady(pigeon);
 }
@@ -302,6 +303,7 @@ portalFlush(Portal * portal)
 void
 portalReady(Portal * portal)
 {
+    if (portal == NULL) return;
     portal->ready = true;
     checkReady(portal->pigeon);
 }
@@ -310,6 +312,7 @@ portalReady(Portal * portal)
 void
 portalGetStreamKeys(Portal * portal, char * destination)
 {
+    if (portal == NULL) return;
     PortalEntryList * list = portal->streamList;
 
     // Using two buffers to separate read and written buffer
@@ -336,6 +339,7 @@ portalGetStreamKeys(Portal * portal, char * destination)
 bool
 portalSetStreamKeys(Portal * portal, char * sequence)
 {
+    if (portal == NULL) return false;
     PortalEntryList * list = malloc(sizeof(PortalEntryList));
     PortalEntryList * newRoot = list;
 
