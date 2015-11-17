@@ -86,6 +86,13 @@ pidSetup(ControlHandle handle, Portal * portal)
             .key = "integral",
             .handler = portalFloatHandler,
             .handle = &pid->integral
+        },
+
+        // End terminating struct
+        {
+            .key = "~",
+            .handler = NULL,
+            .handle = NULL
         }
     };
     portalAddBatch(portal, setups);
@@ -199,6 +206,13 @@ tbhSetup(ControlHandle handle, Portal * portal)
             .key = "crossed",
             .handler = portalBoolHandler,
             .handle = &tbh->crossed
+        },
+
+        // End terminating struct
+        {
+            .key = "~",
+            .handler = NULL,
+            .handle = NULL
         }
     };
     portalAddBatch(portal, setups);
@@ -288,6 +302,13 @@ bangBangSetup(ControlHandle handle, Portal * portal)
             .key = "trigger-low",
             .handler = portalFloatHandler,
             .handle = &bb->triggerLow
+        },
+
+        // End terminating struct
+        {
+            .key = "~",
+            .handler = NULL,
+            .handle = NULL
         }
     };
     portalAddBatch(portal, setups);

@@ -197,7 +197,6 @@ waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime)
 static void
 task(void * flywheelPointer)
 {
-    puts("Inside task beginning");
     Flywheel * flywheel = flywheelPointer;
     int i = 0;
     while (true)
@@ -480,7 +479,8 @@ initPortal(Flywheel * flywheel, FlywheelSetup setup)
     portalAddBatch(flywheel->portal, setups);
 }
 
-void readyHandler(void * handle, char * message, char * response)
+static void
+readyHandler(void * handle, char * message, char * response)
 {
     if (handle == NULL) return;
     if (message == NULL) return;

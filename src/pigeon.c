@@ -78,6 +78,7 @@ struct Pigeon
     PortalEntry * messageUsers[MAXMSG];
     int vacantIndex;
     Portal * topPortal;
+    Portal * pigeonPortal;
     PigeonIn gets;
     PigeonOut puts;
     PigeonMillis millis;
@@ -103,6 +104,8 @@ static PortalEntry ** findEntry(const char * key, PortalEntry **);
 static Portal ** findPortal(const char * id, Portal **);
 static void deleteEntryList(PortalEntryList *);
 static void allocateMessage(Pigeon*, PortalEntry*);
+static void setupPigeonPortal(Pigeon*);
+static void enablePortalHandler(void * handle, char * message, char * response);
 
 // }}}
 
@@ -125,8 +128,11 @@ pigeonInit(PigeonIn getter, PigeonOut putter, PigeonMillis clock)
 
     pigeon->task = NULL;
     pigeon->topPortal = NULL;
+    pigeon->pigeonPortal = NULL;
 
     pigeon->ready = false;
+
+    setupPigeonPortal(pigeon);
 
     return pigeon;
 }
@@ -310,6 +316,14 @@ portalReady(Portal * portal)
 
 
 void
+portalEnable(Portal * portal)
+{
+    if (portal == NULL) return;
+    portal->enabled = true;
+}
+
+
+void
 portalGetStreamKeys(Portal * portal, char * destination)
 {
     if (portal == NULL) return;
@@ -375,10 +389,9 @@ void
 portalFloatHandler(void * handle, char * msg, char * res)
 {
     if (handle == NULL) return;
-    if (msg == NULL) return;
     if (res == NULL) return;
     float * var = handle;
-    if (msg[0] == '\0') sprintf(res, "%f", *var);
+    if (msg == NULL) sprintf(res, "%f", *var);
     else
     {
         bool success = stringToFloat(msg, var);
@@ -392,10 +405,9 @@ void
 portalUintHandler(void * handle, char * msg, char * res)
 {
     if (handle == NULL) return;
-    if (msg == NULL) return;
     if (res == NULL) return;
     unsigned int * var = handle;
-    if (msg[0] == '\0') sprintf(res, "%u", *var);
+    if (msg == NULL) sprintf(res, "%u", *var);
     else
     {
         unsigned long cast;
@@ -411,10 +423,9 @@ void
 portalUlongHandler(void * handle, char * msg, char * res)
 {
     if (handle == NULL) return;
-    if (msg == NULL) return;
     if (res == NULL) return;
     unsigned long * var = handle;
-    if (msg[0] == '\0') sprintf(res, "%lu", *var);
+    if (msg == NULL) sprintf(res, "%lu", *var);
     else
     {
         bool success = stringToUlong(msg, var);
@@ -428,10 +439,9 @@ void
 portalBoolHandler(void * handle, char * msg, char * res)
 {
     if (handle == NULL) return;
-    if (msg == NULL) return;
     if (res == NULL) return;
     bool * var = handle;
-    if (msg[0] == '\0') strcpy(res, *var ? "true" : "false");
+    if (msg == NULL) strcpy(res, *var ? "true" : "false");
     else if (strcmp(msg, "true") == 0)
     {
         *var = true;
@@ -447,10 +457,9 @@ void
 portalStreamKeyHandler(void * handle, char * msg, char * res)
 {
     if (handle == NULL) return;
-    if (msg == NULL) return;
     if (res == NULL) return;
     Portal * portal = handle;
-    if (msg[0] == '\0') portalGetStreamKeys(portal, res);
+    if (msg == NULL) portalGetStreamKeys(portal, res);
     else portalSetStreamKeys(portal, msg);
 }
 
@@ -467,7 +476,8 @@ task(void * pigeonData)
     while (true)
     {
         char input[LINESIZE];
-        fgets(input, LINESIZE, stdin);
+        char * result = fgets(input, LINESIZE, stdin);
+        if (result == NULL) continue;
 
         trimSpaces(input);
 
@@ -481,20 +491,21 @@ task(void * pigeonData)
         trimSpaces(entryKey);
 
         Portal ** portalPos = findPortal(portalId, &pigeon->topPortal);
-        if (*portalPos == NULL) break;
+        if (*portalPos == NULL) continue;
         Portal * portal = *portalPos;
 
         PortalEntry ** entryPos = findEntry(entryKey, &portal->topEntry);
-        if (*entryPos == NULL) break;
+        if (*entryPos == NULL) continue;
         PortalEntry * entry = *entryPos;
 
-        if (entry->handler == NULL) break;
+        if (entry->handler == NULL) continue;
         char response[LINESIZE];
+        response[0] = '\0'; // TODO: needed?
         entry->handler(entry->handle, message, response);
 
         if (!entry->manual) portalUpdate(portal, entry->key);
 
-        if (response[0] == '\0') break;
+        if (response[0] == '\0') continue;
 
         writeMessage(
             pigeon,
@@ -510,6 +521,7 @@ task(void * pigeonData)
 static void
 checkReady(Pigeon * pigeon)
 {
+    if (pigeon->task != NULL) return;
     if (!pigeon->ready) return;
     if (isPortalBranchReady(pigeon->topPortal))
     {
@@ -525,12 +537,10 @@ checkReady(Pigeon * pigeon)
 static bool
 isPortalBranchReady(Portal * portal)
 {
-    if (!portal->ready)
-        return false;
-    if (portal->portalLeft && !isPortalBranchReady(portal->portalLeft))
-        return false;
-    if (portal->portalRight && !isPortalBranchReady(portal->portalRight))
-        return false;
+    if (portal == NULL) return true;
+    if (!portal->ready) return false;
+    if (!isPortalBranchReady(portal->portalLeft)) return false;
+    if (!isPortalBranchReady(portal->portalRight)) return false;
     return true;
 }
 
@@ -544,29 +554,36 @@ writeMessage(
 ){
 
     char path[LINESIZE];
-    int pathWidth;
     if (key[0] == '\0')
     {
         snprintf(path, LINESIZE, "%s", id);
-        pathWidth = strlen(id);
     }
     else
     {
         snprintf(path, LINESIZE, "%s.%s", id, key);
-        pathWidth = strlen(id) + strlen(key) + 1;
     }
 
+    int pathLength = strlen(path);
+    int pathDisplayWidth = pathLength;
+
     // round up
-    pathWidth += ALIGNSIZE - 1;
-    pathWidth = (pathWidth / ALIGNSIZE) * ALIGNSIZE;
+    pathDisplayWidth += ALIGNSIZE - 1;
+    pathDisplayWidth = (pathDisplayWidth / ALIGNSIZE) * ALIGNSIZE;
+    if (pathDisplayWidth > LINESIZE - 1) pathDisplayWidth = LINESIZE - 1;
+
+    while (pathLength < pathDisplayWidth)
+    {
+        path[pathLength] = ' ';
+        pathLength++;
+    }
+    path[pathLength] = '\0';
 
     char str[LINESIZE];
     snprintf(
         str,
         LINESIZE,
-        "[%08u|%-*s] %s",
+        "[%08u|%s] %s",
         (unsigned int)pigeon->millis(),
-        pathWidth,
         path,
         message
     );
@@ -645,6 +662,49 @@ allocateMessage(Pigeon * pigeon, PortalEntry * entry)
 
     pigeon->vacantIndex++;
     if (pigeon->vacantIndex >= MAXMSG) pigeon->vacantIndex = 0;
+}
+
+static void
+setupPigeonPortal(Pigeon * pigeon)
+{
+    pigeon->pigeonPortal = pigeonCreatePortal(pigeon, "pigeon");
+
+    PortalEntrySetup setups[] =
+    {
+        {
+            .key = "enable",
+            .handler = enablePortalHandler,
+            .handle = pigeon
+        },
+
+        // End terminating struct
+        {
+            .key = "~",
+            .handler = NULL,
+            .handle = NULL
+        }
+    };
+
+    portalAddBatch(pigeon->pigeonPortal, setups);
+    portalEnable(pigeon->pigeonPortal);
+    portalReady(pigeon->pigeonPortal);
+}
+
+static void
+enablePortalHandler(void * handle, char * message, char * response)
+{
+    if (handle == NULL) return;
+    if (message == NULL) return;
+    if (response == NULL) return;
+    Pigeon * pigeon = handle;
+    char * id = strtok(message, " ");
+    while (id != NULL)
+    {
+        printf("Enabling portal %s\n", id);
+        Portal * portal = *findPortal(id, &pigeon->topPortal);
+        portalEnable(portal);
+        id = strtok(NULL, "");
+    }
 }
 
 // }}}
