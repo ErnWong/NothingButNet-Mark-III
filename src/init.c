@@ -81,7 +81,7 @@ void initialize()
 
     FlywheelSetup fwAboveSetup =
     {
-        .id = "flywheel-above",
+        .id = "fwabove",
         .pigeon = pigeon,
 
         .gearing = 5.0f,
