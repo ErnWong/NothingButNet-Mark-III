@@ -60,6 +60,7 @@ struct Portal
 
     const char * id;
     PortalEntry * topEntry;
+    PortalEntryList * entryList;
     PortalEntryList * streamList;
 
     bool enabled;
@@ -154,6 +155,7 @@ pigeonCreatePortal(Pigeon * pigeon, const char * id)
     portal->onchange = true;
 
     portal->topEntry = NULL;
+    portal->entryList = NULL;
     portal->streamList = NULL;
     portal->portalLeft = NULL;
     portal->portalRight = NULL;
@@ -202,12 +204,17 @@ portalAdd(Portal * portal, PortalEntrySetup setup)
     PortalEntry ** entryPos = findEntry(entry->key, &portal->topEntry);
     *entryPos = entry;
 
+    PortalEntryList * entryList = malloc(sizeof(PortalEntryList));
+    entryList->entry = entry;
+    entryList->next = portal->entryList;
+    portal->entryList = entryList;
+
     if (entry->stream)
     {
-        PortalEntryList * list = malloc(sizeof(PortalEntryList));
-        list->entry = entry;
-        list->next = portal->streamList;
-        portal->streamList = list;
+        PortalEntryList * streamList = malloc(sizeof(PortalEntryList));
+        streamList->entry = entry;
+        streamList->next = portal->streamList;
+        portal->streamList = streamList;
     }
 }
 
@@ -238,9 +245,8 @@ portalSet(Portal * portal, const char * key, const char * message)
     if (*location == NULL) return;
 
     PortalEntry * entry = *location;
-    if (entry->message == NULL) {
-        allocateMessage(portal->pigeon, entry);
-    }
+    if (entry->message == NULL) return;
+
     stringCopy(entry->message, message, LINESIZE);
 
     if (portal->onchange && entry->onchange)
@@ -267,10 +273,9 @@ portalUpdate(Portal * portal, const char * key)
 
     PortalEntry * entry = *location;
 
-    if (entry->message == NULL) {
-        allocateMessage(portal->pigeon, entry);
-    }
-    entry->handler(entry->handle, "", entry->message);
+    if (entry->message == NULL) return;
+
+    entry->handler(entry->handle, NULL, entry->message);
 
     if (portal->onchange && entry->onchange)
     {
@@ -291,18 +296,19 @@ portalFlush(Portal * portal)
     if (!portal->enabled) return;
 
     PortalEntryList * list = portal->streamList;
-    char output[LINESIZE];
-    while (list != NULL)
+    char output[LINESIZE] = {0};
+    if (list == NULL)
     {
-        snprintf(output, LINESIZE, "%s %s", output, list->entry->message);
-        list = list->next;
+        writeMessage(portal->pigeon, portal->id, "", "");
     }
-    writeMessage(
-        portal->pigeon,
-        portal->id,
-        "",
-        output
-    );
+    while (true)
+    {
+        stringAppend(output, list->entry->message, LINESIZE);
+        list = list->next;
+        if (list == NULL) break;
+        stringAppend(output, " ", LINESIZE);
+    }
+    writeMessage(portal->pigeon, portal->id, "", output);
 }
 
 
@@ -320,6 +326,12 @@ portalEnable(Portal * portal)
 {
     if (portal == NULL) return;
     portal->enabled = true;
+    PortalEntryList * entryList = portal->entryList;
+    while (entryList != NULL)
+    {
+        allocateMessage(portal->pigeon, entryList->entry);
+        entryList = entryList->next;
+    }
 }
 
 
@@ -329,24 +341,15 @@ portalGetStreamKeys(Portal * portal, char * destination)
     if (portal == NULL) return;
     PortalEntryList * list = portal->streamList;
 
-    // Using two buffers to separate read and written buffer
-    char buffer1[LINESIZE] = {0};
-    char buffer2[LINESIZE] = {0};
-    char * working = buffer1;
-    char * previous = buffer2;
-
-    while (list != NULL)
+    destination[0] = '\0';
+    if (list == NULL) return;
+    while (true)
     {
-        snprintf(working, LINESIZE, "%s %s", previous, list->entry->key);
+        stringAppend(destination, list->entry->key, LINESIZE);
         list = list->next;
-
-        // Swap buffer pointers to read the written buffer
-        char * old = working;
-        working = previous;
-        previous = old;
+        if (list == NULL) break;
+        stringAppend(destination, " ", LINESIZE);
     }
-    // + 1 to remove initial space
-    strncpy(destination, previous + 1, LINESIZE);
 }
 
 
@@ -699,7 +702,6 @@ enablePortalHandler(void * handle, char * message, char * response)
     char * id = strtok(message, " ");
     while (id != NULL)
     {
-        printf("Enabling portal %s\n", id);
         Portal * portal = *findPortal(id, &pigeon->topPortal);
         portalEnable(portal);
         id = strtok(NULL, "");

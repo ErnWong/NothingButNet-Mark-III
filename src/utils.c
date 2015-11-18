@@ -104,9 +104,17 @@ stringToUlong(const char * string, unsigned long * dest)
 }
 
 char *
-stringCopy(char * destination, const char * source, size_t size)
+stringCopy(char * dest, const char * src, size_t size)
 {
-    strncpy(destination, source, size - 1);
-    destination[size - 1] = '\0';
-    return destination;
+    strncpy(dest, src, size - 1);
+    dest[size - 1] = '\0';
+    return dest;
+}
+
+char *
+stringAppend(char * dest, const char * src, size_t size)
+{
+    size_t start = strlen(dest);
+    size_t sizeLeft = size - start;
+    return stringCopy(dest + start, src, sizeLeft);
 }

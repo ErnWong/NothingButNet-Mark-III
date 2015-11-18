@@ -18,6 +18,7 @@ int signOf(int);
 bool isWithin(float x, float size);
 char * trimSpaces(char *);
 char * stringCopy(char * destination, const char * source, size_t);
+char * stringAppend(char * destination, const char * source, size_t);
 bool stringToFloat(const char * string, float * dest);
 bool stringToUlong(const char * string, unsigned long * dest);
 
