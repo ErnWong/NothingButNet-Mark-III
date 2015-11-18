@@ -96,7 +96,7 @@ stringToUlong(const char * string, unsigned long * dest)
     for (; *string; string++)
     {
         int digit = *string - '0';
-        if (digit <= 0 || digit >= 9) return false;
+        if (digit < 0 || digit > 9) return false;
         rez = 10 * rez + digit;
     }
     *dest = rez;
