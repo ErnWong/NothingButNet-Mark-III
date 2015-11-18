@@ -330,8 +330,8 @@ portalGetStreamKeys(Portal * portal, char * destination)
     PortalEntryList * list = portal->streamList;
 
     // Using two buffers to separate read and written buffer
-    char buffer1[LINESIZE];
-    char buffer2[LINESIZE];
+    char buffer1[LINESIZE] = {0};
+    char buffer2[LINESIZE] = {0};
     char * working = buffer1;
     char * previous = buffer2;
 
