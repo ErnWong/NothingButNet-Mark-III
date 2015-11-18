@@ -107,6 +107,7 @@ static void deleteEntryList(PortalEntryList *);
 static void allocateMessage(Pigeon*, PortalEntry*);
 static void setupPigeonPortal(Pigeon*);
 static void enablePortalHandler(void * handle, char * message, char * response);
+static void disablePortalHandler(void * handle, char * message, char * response);
 
 // }}}
 
@@ -332,6 +333,14 @@ portalEnable(Portal * portal)
         allocateMessage(portal->pigeon, entryList->entry);
         entryList = entryList->next;
     }
+}
+
+
+void
+portalDisable(Portal * portal)
+{
+    if (portal == NULL) return;
+    portal->enabled = false;
 }
 
 
@@ -678,6 +687,11 @@ setupPigeonPortal(Pigeon * pigeon)
             .handler = enablePortalHandler,
             .handle = pigeon
         },
+        {
+            .key = "disable",
+            .handler = disablePortalHandler,
+            .handle = pigeon
+        },
 
         // End terminating struct
         {
@@ -704,6 +718,22 @@ enablePortalHandler(void * handle, char * message, char * response)
     {
         Portal * portal = *findPortal(id, &pigeon->topPortal);
         portalEnable(portal);
+        id = strtok(NULL, "");
+    }
+}
+
+static void
+disablePortalHandler(void * handle, char * message, char * response)
+{
+    if (handle == NULL) return;
+    if (message == NULL) return;
+    if (response == NULL) return;
+    Pigeon * pigeon = handle;
+    char * id = strtok(message, " ");
+    while (id != NULL)
+    {
+        Portal * portal = *findPortal(id, &pigeon->topPortal);
+        portalDisable(portal);
         id = strtok(NULL, "");
     }
 }

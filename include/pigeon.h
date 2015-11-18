@@ -84,6 +84,9 @@ portalReady(Portal *);
 void
 portalEnable(Portal *);
 
+void
+portalDisable(Portal *);
+
 Pigeon *
 pigeonInit(PigeonIn, PigeonOut, PigeonMillis);
 
