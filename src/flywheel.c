@@ -450,12 +450,12 @@ initPortal(Flywheel * flywheel, FlywheelSetup setup)
         },
         {
             .key = "threshold-error",
-            .handler = portalUlongHandler,
+            .handler = portalFloatHandler,
             .handle = &flywheel->thresholdError
         },
         {
             .key = "threshold-derivative",
-            .handler = portalUlongHandler,
+            .handler = portalFloatHandler,
             .handle = &flywheel->thresholdDerivative
         },
         {
