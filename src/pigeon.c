@@ -499,8 +499,7 @@ task(void * pigeonData)
         PortalEntry * entry = *entryPos;
 
         if (entry->handler == NULL) continue;
-        char response[LINESIZE];
-        response[0] = '\0'; // TODO: needed?
+        char response[LINESIZE] = {0};
         entry->handler(entry->handle, message, response);
 
         if (!entry->manual) portalUpdate(portal, entry->key);
