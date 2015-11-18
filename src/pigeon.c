@@ -93,17 +93,17 @@ struct Pigeon
 
 // Private functions - forward declarations {{{
 
-static void checkReady(Pigeon *);
-static bool isPortalBranchReady(Portal *);
+static void checkReady(Pigeon*);
+static bool isPortalBranchReady(Portal*);
 static void writeMessage(
-    Pigeon *,
+    Pigeon*,
     const char * id,
     const char * key,
     const char * message
 );
 static PortalEntry ** findEntry(const char * key, PortalEntry **);
 static Portal ** findPortal(const char * id, Portal **);
-static void deleteEntryList(PortalEntryList *);
+static void deleteEntryList(PortalEntryList*);
 static void allocateMessage(Pigeon*, PortalEntry*);
 static void setupPigeonPortal(Pigeon*);
 static void enablePortalHandler(void * handle, char * message, char * response);

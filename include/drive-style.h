@@ -9,7 +9,7 @@ extern "C" {
 
 
 
-typedef void (*DriveStyle)(MotorHandle *, MotorSetter *);
+typedef void (*DriveStyle)(MotorHandle*, MotorSetter*);
 
 typedef enum
 TankDriveMotors
@@ -30,7 +30,7 @@ XDriveMotors
 XDriveMotors;
 
 
-void tankStyle(MotorHandle *, MotorSetter *);
+void tankStyle(MotorHandle*, MotorSetter*);
 void arcadeLeftStyle(MotorHandle * motors, MotorSetter * motorSet);
 void arcadeRightStyle(MotorHandle * motors, MotorSetter * motorSet);
 

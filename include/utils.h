@@ -13,10 +13,10 @@ extern "C" {
 // Updates the given variable with the current time in microseconds,
 // and returns the time difference in seconds.
 //
-float timeUpdate(unsigned long *microTime);
+float timeUpdate(unsigned long * microTime);
 int signOf(int);
 bool isWithin(float x, float size);
-char * trimSpaces(char *);
+char * trimSpaces(char*);
 char * stringCopy(char * destination, const char * source, size_t);
 char * stringAppend(char * destination, const char * source, size_t);
 bool stringToFloat(const char * string, float * dest);

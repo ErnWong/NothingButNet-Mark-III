@@ -54,44 +54,44 @@ PortalEntrySetup;
 // Methods {{{
 
 void
-portalAdd(Portal *, PortalEntrySetup);
+portalAdd(Portal*, PortalEntrySetup);
 
 void
-portalAddBatch(Portal *, PortalEntrySetup *);
+portalAddBatch(Portal*, PortalEntrySetup*);
 
 void
 portalSet(
-    Portal *,
+    Portal*,
     const char * key,
     const char * message
 );
 
 void
-portalGetStreamKeys(Portal *, char * destination);
+portalGetStreamKeys(Portal*, char * destination);
 
 bool
-portalSetStreamKeys(Portal *, char * sequence);
+portalSetStreamKeys(Portal*, char * sequence);
 
 void
-portalUpdate(Portal *, const char * key);
+portalUpdate(Portal*, const char * key);
 
 void
-portalFlush(Portal *);
+portalFlush(Portal*);
 
 void
-portalReady(Portal *);
+portalReady(Portal*);
 
 void
-portalEnable(Portal *);
+portalEnable(Portal*);
 
 void
-portalDisable(Portal *);
+portalDisable(Portal*);
 
 Pigeon *
 pigeonInit(PigeonIn, PigeonOut, PigeonMillis);
 
 Portal *
-pigeonCreatePortal(Pigeon *, const char * id);
+pigeonCreatePortal(Pigeon*, const char * id);
 
 void
 pigeonReady(Pigeon*);

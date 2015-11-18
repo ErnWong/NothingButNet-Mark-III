@@ -68,13 +68,13 @@ Flywheel *
 flywheelInit(FlywheelSetup setup);
 
 void
-flywheelRun(Flywheel *flywheel);
+flywheelRun(Flywheel * flywheel);
 
 void
-flywheelSet(Flywheel *flywheel, float rpm);
+flywheelSet(Flywheel * flywheel, float rpm);
 
 void
-waitUntilFlywheelReady(Flywheel *flywheel, const unsigned long blockTime);
+waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime);
 
 // }}}
 
