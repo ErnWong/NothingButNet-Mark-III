@@ -466,7 +466,7 @@ initPortal(Flywheel * flywheel, FlywheelSetup setup)
         {
             .key = "keys",
             .handler = portalStreamKeyHandler,
-            .handle = &flywheel->portal
+            .handle = flywheel->portal
         },
 
         // End terminating struct
