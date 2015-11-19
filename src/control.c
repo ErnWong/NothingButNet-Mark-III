@@ -145,7 +145,7 @@ float
 tbhUpdate(ControlHandle handle, ControlSystem * system)
 {
     Tbh * tbh = handle;
-    system->action += system->error * system->dt * tbh->gain;
+    system->action -= system->error * system->dt * tbh->gain;
 
     // TODO: this never equals, use range instead
     if (system->target != tbh->lastTarget)
