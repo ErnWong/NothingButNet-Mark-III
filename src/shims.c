@@ -30,12 +30,12 @@ encoderGetter(EncoderHandle handle)
 {
     EncoderShim * shim = handle;
 
-    float timeChange = timeUpdate(&shim->microTime);
+    float minutes = timeUpdate(&shim->microTime) / 60.0f;
     int angle = encoderGet(shim->encoder);
     int ticks = angle - shim->angle;
 
     shim->angle = angle;
-    float rpm = ticks / TICKS_PER_REV_ENCODER / timeChange;
+    float rpm = ticks / TICKS_PER_REV_ENCODER / minutes;
     EncoderReading reading =
     {
         .angle = ((float)angle) / TICKS_PER_REV_ENCODER * SHIM_REVOLUTION,
