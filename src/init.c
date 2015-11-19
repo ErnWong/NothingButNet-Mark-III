@@ -11,6 +11,8 @@ Pigeon * pigeon = NULL;
 Drive * drive = NULL;
 Flywheel * fwAbove = NULL;
 Flywheel * fwBelow = NULL;
+Encoder fwAboveEncoder = NULL;
+Encoder fwBelowEncoder = NULL;
 
 static char *
 pigeonGets(char * buffer, int maxSize);
@@ -32,8 +34,8 @@ void initialize()
     // Note: no joystick, no link, exit promptly
     // Purpose:
     //  - Init sensors, LCDs, Global vars, IMEs
-    Encoder fwBelowEncoder = encoderInit(1, 2, false);
-    Encoder fwAboveEncoder = encoderInit(3, 4, false);
+    fwBelowEncoder = encoderInit(1, 2, false);
+    fwAboveEncoder = encoderInit(3, 4, false);
     pigeon = pigeonInit(pigeonGets, pigeonPuts, millis);
     /*
 
@@ -84,7 +86,7 @@ void initialize()
         .id = "fwabove",
         .pigeon = pigeon,
 
-        .gearing = 5.0f,
+        .gearing = 25.0f,
         .smoothing = 0.2f,
 
         .controlSetup = tbhSetup,

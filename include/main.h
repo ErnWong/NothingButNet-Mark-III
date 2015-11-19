@@ -27,6 +27,8 @@ extern Pigeon * pigeon;
 extern Drive * drive;
 extern Flywheel * fwAbove;
 extern Flywheel * fwBelow;
+extern Encoder fwBelowEncoder;
+extern Encoder fwAboveEncoder;
 
 
 
