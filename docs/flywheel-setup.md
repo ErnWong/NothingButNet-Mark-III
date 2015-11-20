@@ -186,6 +186,8 @@ The flywheel can be used with many control algorithms, provided using
 [pidInit]:          control#pid-init
 [tbhSetup]:         control#tbh-setup
 [tbhUpdate]:        control#tbh-update
+[tbhReset]:         control#tbh-reset
+[tbhInit]:          control#tbh-init
 [bangBangSetup]:    control#bb-setup
 [bangBangUpdate]:   control#bb-update
 [bangBangReset]:    control#bb-reset
