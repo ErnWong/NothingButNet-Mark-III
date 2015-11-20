@@ -88,7 +88,7 @@ For more info about the flywheel pigeon portal and what it can do, check out
 #### Flywheel RPM input parameters
 
 ```c
-.gearing = 1.0f,
+.gearing = 1.0f
 ```
 
 The `gearing` is a float. The flywheel calculates the flywheel's rpm by
@@ -159,7 +159,7 @@ Shims for common encoder types are provided:
 #### Motor output
 
 ```c
-.motorSetters = []
+.motorSetters = [],
 .motors = []
 ```
 
@@ -169,11 +169,11 @@ command to a motor port. These shims uses the corresponding handle from the
 
 Two shims are provided separately:
 
-| Motor              | Smart Motor         |
-|--------------------|---------------------|
-| [shims.h][]        | [motor.h][]         |
-| [motorSetter][]    | [smartMotorSetter[] |
-| [motorGetHandle][] | [smartMotorInit][]  |
+| Motor              | Smart Motor          |
+|--------------------|----------------------|
+| [shims.h][]        | [motor.h][]          |
+| [motorSetter][]    | [smartMotorSetter][] |
+| [motorGetHandle][] | [smartMotorInit][]   |
 
 List your motor setters and motor handles in the arrays, **with at most 8 motors**.
 
@@ -228,6 +228,6 @@ The flywheel checks the conditions once every cycle of `checkCycle` number
 of frames.
 
 As a side note, you can wait for when the flywheel becomes ready by calling
-the function [waitUntilFlywheelReady(flywheel)][]).
+the function [waitUntilFlywheelReady(flywheel)][].
 
 [waitUntilFlywheelReady(flywheel)]: flywheel#wait
