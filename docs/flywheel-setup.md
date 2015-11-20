@@ -83,7 +83,7 @@ For more info about the flywheel pigeon portal and what it can do, check out
 [Pigeon#id]:        pigeon#id
 [Flywheel Portal]:  flywheel-portal
 
-### External input/outputs
+### Input, Controllers, and Outputs
 
 #### Flywheel RPM input parameters
 
@@ -155,6 +155,41 @@ Shims for common encoder types are provided:
 [imeGetter]:        shims#ime-getter
 [imeResetter]:      shims#ime-resetter
 [imeGetHandle]:     shims#ime-gethandle
+
+#### Controllers
+
+```c
+.controlSetup = tbhSetup,
+.controlUpdater = tbhUpdate,
+.controlResetter = tbhReset,
+.control = tbhInit(0.2, estimator)
+```
+
+The flywheel can be used with many control algorithms, provided using
+[controller shims][]. The following control algorithms are provided in
+`control.h`.
+
+| [PID][]       | [TBH][]       | [Bang Bang][]      |
+|---------------|---------------|--------------------|
+| [pidSetup][]  | [tbhSetup][]  | [bangBangSetup][]  |
+| [pidUpdate][] | [tbhUpdate][] | [bangBangUpdate][] |
+| [pidReset][]  | [tbhReset][]  | [bangBangReset][]  |
+| [pidInit][]   | [tbhInit][]   | [bangBangInit][]   |
+
+[controller shims]: control
+[PID]:              control#pid
+[TBH]:              control#tbh
+[Bang Bang]:        control#bb
+[pidSetup]:         control#pid-setup
+[pidUpdate]:        control#pid-update
+[pidReset]:         control#pid-reset
+[pidInit]:          control#pid-init
+[tbhSetup]:         control#tbh-setup
+[tbhUpdate]:        control#tbh-update
+[bangBangSetup]:    control#bb-setup
+[bangBangUpdate]:   control#bb-update
+[bangBangReset]:    control#bb-reset
+[bangBangInit]:     control#bb-init
 
 #### Motor output
 
