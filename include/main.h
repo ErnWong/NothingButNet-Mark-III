@@ -6,6 +6,7 @@
 #include "drive.h"
 #include "pigeon.h"
 #include "flywheel.h"
+#include "flap.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,6 +30,7 @@ extern Flywheel * fwAbove;
 extern Flywheel * fwBelow;
 extern Encoder fwBelowEncoder;
 extern Encoder fwAboveEncoder;
+extern Flap * fwFlap;
 
 
 

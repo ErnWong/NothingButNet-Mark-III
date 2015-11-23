@@ -5,6 +5,7 @@
 #include "drive-style.h"
 #include "flywheel.h"
 #include "control.h"
+#include "flap.h"
 #include "shims.h"
 
 Pigeon * pigeon = NULL;
@@ -13,6 +14,7 @@ Flywheel * fwAbove = NULL;
 Flywheel * fwBelow = NULL;
 Encoder fwAboveEncoder = NULL;
 Encoder fwBelowEncoder = NULL;
+Flap * fwFlap = NULL;
 
 static char *
 pigeonGets(char * buffer, int maxSize);
@@ -119,6 +121,29 @@ void initialize()
         .checkCycle = 20
     };
     fwAbove = flywheelInit(fwAboveSetup);
+
+    FlapSetup fwFlapSetup =
+    {
+        .id ="flap",
+        .pigeon = pigeon,
+
+        .motorSetter = motorSetter,
+        .motor = motorGetHandle(9, false),
+        .digitalOpenedGetter = digitalGetter,
+        .digitalOpened = digitalGetHandle(5),
+        .digitalClosedGetter = digitalGetter,
+        .digitalClosed = digitalGetHandle(6),
+
+        .initialState = FLAP_CLOSING,
+
+        .priorityReady = 2,
+        .priorityActive = 2,
+        .priorityDrop = 2,
+        .frameDelayReady = 200,
+        .frameDelayActive = 20,
+        .dropDelay = 1000
+    };
+    fwFlap = flapInit(fwFlapSetup);
 
     DriveSetup driveSetup =
     {
