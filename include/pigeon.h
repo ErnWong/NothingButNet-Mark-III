@@ -103,6 +103,9 @@ void
 portalUintHandler(void * handle, char * message, char * response);
 
 void
+portalIntHandler(void * handle, char * message, char * response);
+
+void
 portalUlongHandler(void * handle, char * message, char * response);
 
 void

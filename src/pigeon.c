@@ -414,6 +414,24 @@ portalFloatHandler(void * handle, char * msg, char * res)
 
 
 void
+portalIntHandler(void * handle, char * msg, char * res)
+{
+    if (handle == NULL) return;
+    if (res == NULL) return;
+    int * var = handle;
+    if (msg == NULL) sprintf(res, "%u", *var);
+    else
+    {
+        unsigned long cast;
+        bool success = stringToUlong(msg, &cast);
+        *var = cast;
+        UNUSED(success);
+        // TODO: warn if not successful?
+    }
+}
+
+
+void
 portalUintHandler(void * handle, char * msg, char * res)
 {
     if (handle == NULL) return;
