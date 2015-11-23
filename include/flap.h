@@ -51,6 +51,9 @@ Flap *
 flapInit(FlapSetup);
 
 void
+flapRun(Flap*);
+
+void
 flapOpen(Flap*);
 
 void

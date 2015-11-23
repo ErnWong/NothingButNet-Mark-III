@@ -18,7 +18,11 @@ void operatorControl()
     buttonOndown(JOY_SLOT1, JOY_5D, turnOffFlywheel, NULL);
     buttonOndown(JOY_SLOT1, JOY_6U, turnOnConveyor, NULL);
     buttonOndown(JOY_SLOT1, JOY_6D, turnOffConveyor, NULL);
+
+    flywheelRun(fwBelow);
     flywheelRun(fwAbove);
+    flapRun(fwFlap);
+
     while (true)
     {
         buttonsUpdate();
