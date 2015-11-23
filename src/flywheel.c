@@ -184,6 +184,7 @@ flywheelRun(Flywheel * flywheel)
 void
 waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime)
 {
+    if (flywheel->ready) return;
     semaphoreTake(flywheel->readySemaphore, blockTime);
 }
 
@@ -460,7 +461,7 @@ initPortal(Flywheel * flywheel, FlywheelSetup setup)
         },
         {
             .key = "check-cycle",
-            .handler = portalUlongHandler,
+            .handler = portalIntHandler,
             .handle = &flywheel->checkCycle
         },
         {
