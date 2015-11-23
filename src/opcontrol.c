@@ -19,12 +19,12 @@ void operatorControl()
     buttonOndown(JOY_SLOT1, JOY_6U, turnOnConveyor, NULL);
     buttonOndown(JOY_SLOT1, JOY_6D, turnOffConveyor, NULL);
     flywheelRun(fwAbove);
-	while (true)
+    while (true)
     {
         buttonsUpdate();
         driveUpdate(drive);
-		delay(20);
-	}
+        delay(20);
+    }
     // Note: never exit
 }
 
