@@ -2,6 +2,7 @@
 
 #include <API.h>
 #include <string.h>
+#include <stdbool.h>
 #include "pigeon.h"
 #include "control.h"
 #include "utils.h"
@@ -64,7 +65,7 @@ static void updateMotor(Flywheel*);
 static void checkReady(Flywheel*);
 static void activate(Flywheel*);
 static void readify(Flywheel*);
-static void initPortal(Flywheel*, FlywheelSetup);
+static void setupPortal(Flywheel*, FlywheelSetup);
 static void readyHandler(void * handle, char * message, char * response);
 
 static void printDebugInfo(Flywheel*);
@@ -81,7 +82,7 @@ flywheelInit(FlywheelSetup setup)
 {
     Flywheel * flywheel = malloc(sizeof(Flywheel));
 
-    initPortal(flywheel, setup);
+    setupPortal(flywheel, setup);
 
     flywheel->system.microTime = micros();
     flywheel->system.dt = 0.0f;
@@ -291,7 +292,7 @@ updateMotor(Flywheel * flywheel)
 {
     for (int i = 0; flywheel->motorSet[i] && i < 8; i++)
     {
-        void * handle = flywheel->motors[i];
+        MotorHandle handle = flywheel->motors[i];
         int command = flywheel->system.action;
         flywheel->motorSet[i](handle, command);
     }
@@ -357,7 +358,7 @@ readify(Flywheel * flywheel)
 // Pigeon setup {{{
 
 static void
-initPortal(Flywheel * flywheel, FlywheelSetup setup)
+setupPortal(Flywheel * flywheel, FlywheelSetup setup)
 {
     flywheel->portal = pigeonCreatePortal(setup.pigeon, setup.id);
 
