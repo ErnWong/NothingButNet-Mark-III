@@ -2,6 +2,7 @@
 
 #include <API.h>
 #include <string.h>
+#include <stdbool.h>
 #include "pigeon.h"
 #include "shims.h"
 
@@ -97,6 +98,7 @@ flapOpen(Flap * flap)
 {
     mutexTake(flap->mutex, -1);
     flap->state = FLAP_OPENING;
+    portalUpdate(flap->portal, "state");
     mutexGive(flap->mutex);
 }
 
@@ -105,6 +107,7 @@ flapClose(Flap * flap)
 {
     mutexTake(flap->mutex, -1);
     flap->state = FLAP_CLOSING;
+    portalUpdate(flap->portal, "state");
     mutexGive(flap->mutex);
 }
 
@@ -172,6 +175,7 @@ update(Flap * flap)
         if (!isClosed)
         {
             flap->state = FLAP_CLOSING;
+            portalUpdate(flap->portal, "state");
             command = -127;
             activate(flap);
         }
@@ -181,6 +185,7 @@ update(Flap * flap)
         if (isOpened)
         {
             flap->state = FLAP_OPENED;
+            portalUpdate(flap->portal, "state");
             command = 0;
             readify(flap);
             semaphoreGive(flap->semaphoreOpened);
@@ -191,6 +196,7 @@ update(Flap * flap)
         if (!isOpened)
         {
             flap->state = FLAP_OPENING;
+            portalUpdate(flap->portal, "state");
             command = 127;
             activate(flap);
         }
@@ -200,6 +206,7 @@ update(Flap * flap)
         if (isClosed)
         {
             flap->state = FLAP_CLOSED;
+            portalUpdate(flap->portal, "state");
             command = 0;
             readify(flap);
             semaphoreGive(flap->semaphoreClosed);
@@ -207,6 +214,7 @@ update(Flap * flap)
         break;
     }
     flap->motorSet(flap->motor, command);
+    portalFlush(flap->portal);
 }
 
 static void
@@ -241,7 +249,8 @@ initPortal(Flap * flap, FlapSetup setup)
         {
             .key = "state",
             .handler = stateHandler,
-            .handle = flap
+            .handle = flap,
+            .onchange = true
         },
         {
             .key = "open",
