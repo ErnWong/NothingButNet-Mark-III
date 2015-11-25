@@ -5,22 +5,23 @@
 #include "utils.h"
 
 
-const float SHIM_REVOLUTION = 360;
+const float SHIM_DEGREES_PER_REV = 360.0f;
+const float SHIM_RADIANS_PER_REV = 6.283185307179586f;
 
-const float TICKS_PER_REV_ENCODER = 360;
-const float TICKS_PER_REV_IME_269 = 240.448;
-const float TICKS_PER_REV_IME_393_TORQUE = 627.2;
-const float TICKS_PER_REV_IME_393_SPEED = 392;
+const float TICKS_PER_REV_ENCODER = 360.0f;
+const float TICKS_PER_REV_IME_269 = 240.448f;
+const float TICKS_PER_REV_IME_393_TORQUE = 627.2f;
+const float TICKS_PER_REV_IME_393_SPEED = 392.0f;
 
-const float ENCODER_GEARING_IME_269 = 30.056;
-const float ENCODER_GEARING_IME_393_TORQUE = 39.2;
-const float ENCODER_GEARING_IME_393_SPEED = 24.5;
+const float ENCODER_GEARING_IME_269 = 30.056f;
+const float ENCODER_GEARING_IME_393_TORQUE = 39.2f;
+const float ENCODER_GEARING_IME_393_SPEED = 24.5f;
 
 typedef struct
 EncoderShim
 {
     Encoder encoder;
-    int angle;
+    int ticks;
     unsigned long microTime;
 }
 EncoderShim;
@@ -31,14 +32,16 @@ encoderGetter(EncoderHandle handle)
     EncoderShim * shim = handle;
 
     float minutes = timeUpdate(&shim->microTime) / 60.0f;
-    int angle = encoderGet(shim->encoder);
-    int ticks = angle - shim->angle;
+    int ticks = encoderGet(shim->encoder);
+    int ticksChange = ticks - shim->ticks;
 
-    shim->angle = angle;
-    float rpm = ticks / TICKS_PER_REV_ENCODER / minutes;
+    float revolutions = ((float)ticks) / TICKS_PER_REV_ENCODER;
+    shim->ticks = ticks;
+
+    float rpm = ticksChange / TICKS_PER_REV_ENCODER / minutes;
     EncoderReading reading =
     {
-        .angle = ((float)angle) / TICKS_PER_REV_ENCODER * SHIM_REVOLUTION,
+        .revolutions = revolutions,
         .rpm = rpm
     };
     return reading;
@@ -48,7 +51,7 @@ void
 encoderResetter(EncoderHandle handle)
 {
     EncoderShim * shim = handle;
-    shim->angle = 0;
+    shim->ticks = 0;
     encoderReset(shim->encoder);
 }
 
@@ -57,7 +60,7 @@ encoderGetHandle(Encoder encoder)
 {
     EncoderShim * shim = malloc(sizeof(EncoderShim));
     shim->encoder = encoder;
-    shim->angle = encoderGet(encoder);
+    shim->ticks = encoderGet(encoder);
     shim->microTime = micros();
     return shim;
 }
@@ -94,7 +97,7 @@ imeGetter(EncoderHandle handle)
     }
     EncoderReading reading =
     {
-        .angle = ((float)angle) / shim->ticksPerRevolution * 360,
+        .revolutions = ((float)angle) / shim->ticksPerRevolution,
         .rpm = ((float)rpm) / shim->gearing
     };
     return reading;
@@ -113,7 +116,7 @@ imeResetter(EncoderHandle handle)
     }
 }
 
-void *
+EncoderHandle
 imeGetHandle(unsigned char address, MotorType type)
 {
     ImeShim * shim = malloc(sizeof(ImeShim));
@@ -152,11 +155,65 @@ motorSetter(MotorHandle handle, int command)
     motorSet(shim->channel, command);
 }
 
-void *
+MotorHandle
 motorGetHandle(unsigned char channel, bool reversed)
 {
     MotorShim * shim = malloc(sizeof(MotorShim));
     shim->channel = channel;
     shim->reversed = reversed;
+    return shim;
+}
+
+typedef struct
+DigitalShim
+{
+    unsigned char port;
+}
+DigitalShim;
+
+bool
+digitalGetter(DigitalHandle handle)
+{
+    DigitalShim * shim = handle;
+    return digitalRead(shim->port);
+}
+
+DigitalHandle
+digitalGetHandle(unsigned char port)
+{
+    DigitalShim * shim = malloc(sizeof(DigitalShim));
+    shim->port = port;
+
+    return shim;
+}
+
+typedef struct
+EncoderRangeShim
+{
+    EncoderGetter encoderGet;
+    EncoderHandle encoder;
+    float lower;
+    float upper;
+}
+EncoderRangeShim;
+
+bool
+encoderRangeGetter(DigitalHandle handle)
+{
+    EncoderRangeShim * shim = handle;
+    float revolutions = shim->encoderGet(shim->encoder).revolutions;
+    float degrees = revolutions * SHIM_DEGREES_PER_REV;
+    return shim->lower <= degrees && degrees <= shim->upper;
+}
+
+DigitalHandle
+encoderRangeGetHandle(EncoderGetter encoderGetter, EncoderHandle encoder, float upper, float lower)
+{
+    EncoderRangeShim * shim = malloc(sizeof(EncoderRangeShim));
+    shim->encoderGet = encoderGetter;
+    shim->encoder = encoder;
+    shim->upper = upper;
+    shim->lower = lower;
+
     return shim;
 }

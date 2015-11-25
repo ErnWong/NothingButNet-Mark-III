@@ -4,14 +4,14 @@
 #include <API.h>
 #include <stdbool.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
 
-extern const float SHIM_REVOLUTION;
+extern const float SHIM_DEGREES_PER_REV;
+extern const float SHIM_RADIANS_PER_REV;
 
 extern const float TICKS_PER_REV_ENCODER;
 extern const float TICKS_PER_REV_IME_269;
@@ -25,11 +25,12 @@ extern const float ENCODER_GEARING_IME_393_SPEED;
 
 typedef void * EncoderHandle;
 typedef void * MotorHandle;
+typedef void * DigitalHandle;
 
 typedef struct
 EncoderReading
 {
-    float angle;
+    float revolutions;
     float rpm;
 }
 EncoderReading;
@@ -42,6 +43,9 @@ typedef void
 
 typedef void
 (*MotorSetter)(MotorHandle handle, int command);
+
+typedef bool
+(*DigitalGetter)(DigitalHandle handle);
 
 typedef enum
 MotorType
@@ -58,7 +62,7 @@ encoderGetter(EncoderHandle);
 void
 encoderResetter(EncoderHandle);
 
-void *
+EncoderHandle
 encoderGetHandle(Encoder);
 
 EncoderReading
@@ -67,14 +71,26 @@ imeGetter(EncoderHandle);
 void
 imeResetter(EncoderHandle);
 
-void *
+EncoderHandle
 imeGetHandle(unsigned char address, MotorType);
 
 void
 motorSetter(MotorHandle, int command);
 
-void *
+MotorHandle
 motorGetHandle(unsigned char channel, bool reversed);
+
+bool
+digitalGetter(DigitalHandle);
+
+DigitalHandle
+digitalGetHandle(unsigned char port);
+
+bool
+encoderRangeGetter(DigitalHandle);
+
+DigitalHandle
+encoderRangeGetHandle(EncoderGetter, EncoderHandle, float upper, float lower);
 
 
 
