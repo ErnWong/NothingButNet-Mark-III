@@ -6,6 +6,7 @@
 #include "flywheel.h"
 #include "control.h"
 #include "flap.h"
+#include "reckoner.h"
 #include "shims.h"
 
 Pigeon * pigeon = NULL;
@@ -15,12 +16,11 @@ Flywheel * fwBelow = NULL;
 Encoder fwAboveEncoder = NULL;
 Encoder fwBelowEncoder = NULL;
 Flap * fwFlap = NULL;
+Reckoner * reckoner = NULL;
 
-static char *
-pigeonGets(char * buffer, int maxSize);
-
-static void
-pigeonPuts(const char * message);
+static float fwAboveEstimator(float target);
+static char * pigeonGets(char * buffer, int maxSize);
+static void pigeonPuts(const char * message);
 
 void initializeIO()
 {
@@ -68,7 +68,6 @@ void initialize()
         {
             motorGetHandle(1, false),
             motorGetHandle(2, false),
-            motorGetHandle(3, false)
         },
 
         .priorityReady = 2,
@@ -94,7 +93,7 @@ void initialize()
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
         .controlResetter = tbhReset,
-        .control = tbhInit(0.2, tbhDummyEstimator),
+        .control = tbhInit(0.2, fwAboveEstimator),
 
         .encoderGetter = encoderGetter,
         .encoderResetter = encoderResetter,
@@ -107,8 +106,8 @@ void initialize()
         },
         .motors =
         {
-            motorGetHandle(5, false),
-            motorGetHandle(6, true)
+            motorGetHandle(4, false),
+            motorGetHandle(5, true)
         },
 
         .priorityReady = 2,
@@ -127,23 +126,48 @@ void initialize()
         .id ="flap",
         .pigeon = pigeon,
 
+        .slew = 1.0f,
         .motorSetter = motorSetter,
         .motor = motorGetHandle(9, false),
         .digitalOpenedGetter = digitalGetter,
-        .digitalOpened = digitalGetHandle(5),
+        .digitalOpened = digitalGetHandle(5, true),
         .digitalClosedGetter = digitalGetter,
-        .digitalClosed = digitalGetHandle(6),
+        .digitalClosed = digitalGetHandle(6, true),
 
         .initialState = FLAP_CLOSING,
 
         .priorityReady = 2,
         .priorityActive = 2,
         .priorityDrop = 2,
-        .frameDelayReady = 200,
+        .frameDelayReady = 20,
         .frameDelayActive = 20,
         .dropDelay = 1000
     };
     fwFlap = flapInit(fwFlapSetup);
+
+    ReckonerSetup reckonerSetup =
+    {
+        .id = "reckoner",
+        .pigeon = pigeon,
+
+        .initialX = 0.0f,
+        .initialY = 0.0f,
+        .initialHeading = 0.0f,
+        .initialVelocity = 0.0f,
+
+        .gearingLeft = 1.0f,
+        .gearingRight = 1.0f,
+        .radiusLeft = 5.0f,
+        .radiusRight = 5.0f,
+        .wheelSeparation = 16.0f,
+        .smoothing = 0.5f,
+
+        .encoderLeftGetter = imeGetter,
+        .encoderLeft = imeGetHandle(0, MOTOR_TYPE_393_TORQUE),
+        .encoderRightGetter = imeGetter,
+        .encoderRight = imeGetHandle(1, MOTOR_TYPE_393_TORQUE)
+    };
+    reckoner = reckonerInit(reckonerSetup);
 
     DriveSetup driveSetup =
     {
@@ -154,8 +178,8 @@ void initialize()
         },
         .motors =
         {
-            motorGetHandle(8, false),
-            motorGetHandle(7, false)
+            motorGetHandle(7, false),
+            motorGetHandle(6, false)
         }
     };
     drive = driveInit(driveSetup);
@@ -164,6 +188,12 @@ void initialize()
 
     pigeonReady(pigeon);
 
+}
+
+static float
+fwAboveEstimator(float target)
+{
+    return 18.195f + 2.2052e-5f * target * target;
 }
 
 static char *
