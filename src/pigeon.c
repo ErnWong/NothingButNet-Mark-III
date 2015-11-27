@@ -301,6 +301,7 @@ portalFlush(Portal * portal)
     if (list == NULL)
     {
         writeMessage(portal->pigeon, portal->id, "", "");
+        return;
     }
     while (true)
     {
