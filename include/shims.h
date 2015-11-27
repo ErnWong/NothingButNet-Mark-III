@@ -84,7 +84,7 @@ bool
 digitalGetter(DigitalHandle);
 
 DigitalHandle
-digitalGetHandle(unsigned char port);
+digitalGetHandle(unsigned char port, bool negate);
 
 bool
 encoderRangeGetter(DigitalHandle);

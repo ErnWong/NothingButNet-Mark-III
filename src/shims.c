@@ -168,6 +168,7 @@ typedef struct
 DigitalShim
 {
     unsigned char port;
+    bool negate;
 }
 DigitalShim;
 
@@ -175,14 +176,16 @@ bool
 digitalGetter(DigitalHandle handle)
 {
     DigitalShim * shim = handle;
-    return digitalRead(shim->port);
+    // negate if needed
+    return shim->negate != digitalRead(shim->port);
 }
 
 DigitalHandle
-digitalGetHandle(unsigned char port)
+digitalGetHandle(unsigned char port, bool negate)
 {
     DigitalShim * shim = malloc(sizeof(DigitalShim));
     shim->port = port;
+    shim->negate = negate;
 
     return shim;
 }
