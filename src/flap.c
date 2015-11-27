@@ -10,6 +10,8 @@ struct Flap
 {
     Portal * portal;
 
+    float slew;
+    float command;
     MotorSetter motorSet;
     MotorHandle motor;
     DigitalGetter digitalOpenedGet;
@@ -52,6 +54,9 @@ flapInit(FlapSetup setup)
     Flap * flap = malloc(sizeof(Flap));
 
     initPortal(flap, setup);
+
+    flap->slew = setup.slew;
+    flap->command = 0.0f;
 
     flap->motorSet = setup.motorSetter;
     flap->motor = setup.motor;
@@ -165,55 +170,67 @@ dropTask(void * flapPointer)
 static void
 update(Flap * flap)
 {
-    int command = 0;
     bool isOpened = flap->digitalOpenedGet(flap->digitalOpened);
     bool isClosed = flap->digitalClosedGet(flap->digitalClosed);
+
     switch (flap->state)
     {
     case FLAP_CLOSED:
-        command = 0;
+        if (flap->command < 0)
+        {
+            flap->command += flap->slew;
+        }
+        else
+        {
+            flap->command = 0;
+        }
         if (!isClosed)
         {
             flap->state = FLAP_CLOSING;
             portalUpdate(flap->portal, "state");
-            command = -127;
+            flap->command = -127;
             activate(flap);
         }
         break;
     case FLAP_OPENING:
-        command = 127;
+        flap->command = 127;
         if (isOpened)
         {
             flap->state = FLAP_OPENED;
             portalUpdate(flap->portal, "state");
-            command = 0;
             readify(flap);
             semaphoreGive(flap->semaphoreOpened);
         }
         break;
     case FLAP_OPENED:
-        command = 0;
+        if (flap->command > 0)
+        {
+            flap->command -= flap->slew;
+        }
+        else
+        {
+            flap->command = 0;
+        }
         if (!isOpened)
         {
             flap->state = FLAP_OPENING;
             portalUpdate(flap->portal, "state");
-            command = 127;
+            flap->command = 127;
             activate(flap);
         }
         break;
     case FLAP_CLOSING:
-        command = -127;
+        flap->command = -127;
         if (isClosed)
         {
             flap->state = FLAP_CLOSED;
             portalUpdate(flap->portal, "state");
-            command = 0;
             readify(flap);
             semaphoreGive(flap->semaphoreClosed);
         }
         break;
     }
-    flap->motorSet(flap->motor, command);
+    flap->motorSet(flap->motor, (int)flap->command);
     portalFlush(flap->portal);
 }
 

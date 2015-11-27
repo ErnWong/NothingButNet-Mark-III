@@ -29,6 +29,8 @@ FlapSetup
     char * id;
     Pigeon * pigeon;
 
+    float slew;
+
     MotorSetter motorSetter;
     MotorHandle motor;
     DigitalGetter digitalOpenedGetter;
