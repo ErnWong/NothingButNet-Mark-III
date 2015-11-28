@@ -23,6 +23,7 @@ EncoderShim
     Encoder encoder;
     int ticks;
     unsigned long microTime;
+    Mutex mutex;
 }
 EncoderShim;
 
@@ -30,6 +31,8 @@ EncoderReading
 encoderGetter(EncoderHandle handle)
 {
     EncoderShim * shim = handle;
+
+    mutexTake(shim->mutex);
 
     float minutes = timeUpdate(&shim->microTime) / 60.0f;
     int ticks = encoderGet(shim->encoder);
@@ -44,6 +47,9 @@ encoderGetter(EncoderHandle handle)
         .revolutions = revolutions,
         .rpm = rpm
     };
+
+    mutexGive(shim->mutex);
+
     return reading;
 }
 
@@ -51,8 +57,10 @@ void
 encoderResetter(EncoderHandle handle)
 {
     EncoderShim * shim = handle;
+    mutexTake(shim->mutex);
     shim->ticks = 0;
     encoderReset(shim->encoder);
+    mutexGive(shim->mutex);
 }
 
 EncoderHandle
@@ -62,6 +70,7 @@ encoderGetHandle(Encoder encoder)
     shim->encoder = encoder;
     shim->ticks = encoderGet(encoder);
     shim->microTime = micros();
+    shim->mutex = mutexCreate();
     return shim;
 }
 
@@ -71,6 +80,7 @@ ImeShim
     unsigned char address;
     float gearing;
     float ticksPerRevolution;
+    Mutex mutex;
 }
 ImeShim;
 
@@ -78,6 +88,7 @@ EncoderReading
 imeGetter(EncoderHandle handle)
 {
     ImeShim * shim = handle;
+    mutexTake(shim->mutex);
     int angle = 0;
     int rpm = 0;
     int i;
@@ -100,6 +111,7 @@ imeGetter(EncoderHandle handle)
         .revolutions = ((float)angle) / shim->ticksPerRevolution,
         .rpm = ((float)rpm) / shim->gearing
     };
+    mutexGive(shim->mutex);
     return reading;
 }
 
@@ -107,6 +119,7 @@ void
 imeResetter(EncoderHandle handle)
 {
     ImeShim * shim = handle;
+    mutexTake(shim->mutex);
     int i = 2;
     while (i > 0)
     {
@@ -114,6 +127,7 @@ imeResetter(EncoderHandle handle)
         if (success) break;
         i--;
     }
+    mutexGive(shim->mutex);
 }
 
 EncoderHandle
@@ -136,6 +150,7 @@ imeGetHandle(unsigned char address, MotorType type)
         shim->ticksPerRevolution = TICKS_PER_REV_IME_393_SPEED;
         break;
     }
+    shim->mutex = mutexCreate();
     return shim;
 }
 
@@ -144,6 +159,7 @@ MotorShim
 {
     unsigned char channel;
     bool reversed;
+    Mutex mutex;
 }
 MotorShim;
 
@@ -151,8 +167,10 @@ void
 motorSetter(MotorHandle handle, int command)
 {
     MotorShim * shim = handle;
+    mutexTake(shim->mutex);
     if (shim->reversed) command *= -1;
     motorSet(shim->channel, command);
+    mutexGive(shim->mutex);
 }
 
 MotorHandle
@@ -161,6 +179,7 @@ motorGetHandle(unsigned char channel, bool reversed)
     MotorShim * shim = malloc(sizeof(MotorShim));
     shim->channel = channel;
     shim->reversed = reversed;
+    shim->mutex = mutexCreate();
     return shim;
 }
 
@@ -169,6 +188,7 @@ DigitalShim
 {
     unsigned char port;
     bool negate;
+    Mutex mutex;
 }
 DigitalShim;
 
@@ -176,8 +196,13 @@ bool
 digitalGetter(DigitalHandle handle)
 {
     DigitalShim * shim = handle;
+
+    mutexTake(shim->mutex);
+    bool value = digitalRead(shim->port);
+    mutexGive(shim->mutex);
+
     // negate if needed
-    return shim->negate != digitalRead(shim->port);
+    return shim->negate != value;
 }
 
 DigitalHandle
@@ -186,6 +211,7 @@ digitalGetHandle(unsigned char port, bool negate)
     DigitalShim * shim = malloc(sizeof(DigitalShim));
     shim->port = port;
     shim->negate = negate;
+    shim->mutex = mutexCreate();
 
     return shim;
 }
@@ -197,6 +223,7 @@ EncoderRangeShim
     EncoderHandle encoder;
     float lower;
     float upper;
+    Mutex mutex;
 }
 EncoderRangeShim;
 
@@ -204,7 +231,11 @@ bool
 encoderRangeGetter(DigitalHandle handle)
 {
     EncoderRangeShim * shim = handle;
+
+    mutexTake(shim->mutex);
     float revolutions = shim->encoderGet(shim->encoder).revolutions;
+    mutexGive(shim->mutex);
+
     float degrees = revolutions * SHIM_DEGREES_PER_REV;
     return shim->lower <= degrees && degrees <= shim->upper;
 }
@@ -217,6 +248,7 @@ encoderRangeGetHandle(EncoderGetter encoderGetter, EncoderHandle encoder, float 
     shim->encoder = encoder;
     shim->upper = upper;
     shim->lower = lower;
+    shim->mutex = mutexCreate();
 
     return shim;
 }
