@@ -32,7 +32,7 @@ encoderGetter(EncoderHandle handle)
 {
     EncoderShim * shim = handle;
 
-    mutexTake(shim->mutex);
+    mutexTake(shim->mutex, -1);
 
     float minutes = timeUpdate(&shim->microTime) / 60.0f;
     int ticks = encoderGet(shim->encoder);
@@ -57,7 +57,7 @@ void
 encoderResetter(EncoderHandle handle)
 {
     EncoderShim * shim = handle;
-    mutexTake(shim->mutex);
+    mutexTake(shim->mutex, -1);
     shim->ticks = 0;
     encoderReset(shim->encoder);
     mutexGive(shim->mutex);
@@ -88,7 +88,7 @@ EncoderReading
 imeGetter(EncoderHandle handle)
 {
     ImeShim * shim = handle;
-    mutexTake(shim->mutex);
+    mutexTake(shim->mutex, -1);
     int angle = 0;
     int rpm = 0;
     int i;
@@ -119,7 +119,7 @@ void
 imeResetter(EncoderHandle handle)
 {
     ImeShim * shim = handle;
-    mutexTake(shim->mutex);
+    mutexTake(shim->mutex, -1);
     int i = 2;
     while (i > 0)
     {
@@ -167,7 +167,7 @@ void
 motorSetter(MotorHandle handle, int command)
 {
     MotorShim * shim = handle;
-    mutexTake(shim->mutex);
+    mutexTake(shim->mutex, -1);
     if (shim->reversed) command *= -1;
     motorSet(shim->channel, command);
     mutexGive(shim->mutex);
@@ -197,7 +197,7 @@ digitalGetter(DigitalHandle handle)
 {
     DigitalShim * shim = handle;
 
-    mutexTake(shim->mutex);
+    mutexTake(shim->mutex, -1);
     bool value = digitalRead(shim->port);
     mutexGive(shim->mutex);
 
@@ -232,7 +232,7 @@ encoderRangeGetter(DigitalHandle handle)
 {
     EncoderRangeShim * shim = handle;
 
-    mutexTake(shim->mutex);
+    mutexTake(shim->mutex, -1);
     float revolutions = shim->encoderGet(shim->encoder).revolutions;
     mutexGive(shim->mutex);
 

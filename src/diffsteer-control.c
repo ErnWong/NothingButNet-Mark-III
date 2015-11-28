@@ -59,7 +59,7 @@ diffsteerInit(DiffsteerSetup setup)
 void
 diffsteerRotate(Diffsteer * d, float heading)
 {
-    mutexTake(d->mutex);
+    mutexTake(d->mutex, -1);
     d->mode = DIFFSTEER_ROTATING;
     heading = fmodf(heading + PI, TAU) - PI;
     d->targetHeading = heading;
@@ -69,7 +69,7 @@ diffsteerRotate(Diffsteer * d, float heading)
 void
 diffsteerMove(Diffsteer * d, float x, float y)
 {
-    mutexTake(d->mutex);
+    mutexTake(d->mutex, -1);
     d->mode = DIFFSTEER_MOVING;
     d->targetX = x;
     d->targetY = y;
@@ -79,7 +79,7 @@ diffsteerMove(Diffsteer * d, float x, float y)
 void
 diffsteerStop(Diffsteer * d)
 {
-    mutexTake(d->mutex);
+    mutexTake(d->mutex, -1);
     d->mode = DIFFSTEER_IDLE;
     mutexGive(d->mutex);
 }
@@ -87,7 +87,7 @@ diffsteerStop(Diffsteer * d)
 void
 diffsteerUpdate(Diffsteer * d)
 {
-    mutexTake(d->mutex);
+    mutexTake(d->mutex, -1);
     switch (d->mode)
     {
     case DIFFSTEER_ROTATING:
