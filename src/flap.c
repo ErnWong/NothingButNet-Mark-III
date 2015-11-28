@@ -322,12 +322,16 @@ stateHandler(void * handle, char * message, char * response)
         {
         case FLAP_CLOSED:
             strcpy(response, "closed");
+            break;
         case FLAP_OPENING:
             strcpy(response, "opening");
+            break;
         case FLAP_OPENED:
             strcpy(response, "opened");
+            break;
         case FLAP_CLOSING:
             strcpy(response, "closing");
+            break;
         }
     }
     else if (strcmp(message, "closing") == 0) flapClose(flap);
