@@ -10,9 +10,8 @@ extern "C" {
 
 
 
-extern const float PI;
-extern const float TAU;
-
+#define PI 3.14159265358979323846f
+#define TAU 6.283185307179586f
 
 //
 // Updates the given variable with the current time in microseconds,

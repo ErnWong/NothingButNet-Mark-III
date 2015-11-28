@@ -7,9 +7,6 @@
 
 
 
-const float PI = 3.14159265358979323846f;
-const float TAU = 6.283185307179586f;
-
 //
 // Updates the given variable with the current time in microseconds,
 // and returns the time difference in seconds.
