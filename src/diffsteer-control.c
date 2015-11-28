@@ -2,9 +2,11 @@
 
 #include <API.h>
 #include <math.h>
+#include <string.h>
 #include "reckoner.h"
 #include "shims.h"
 #include "pigeon.h"
+#include "utils.h"
 
 struct Diffsteer
 {
@@ -51,9 +53,11 @@ diffsteerInit(DiffsteerSetup setup)
     d->motorLeftSet = setup.motorLeftSetter;
     d->motorLeft = setup.motorLeft;
     d->motorRightSet = setup.motorRightSetter;
-    d->motorRight = setup.mtorRight;
+    d->motorRight = setup.motorRight;
 
     d->mutex = mutexCreate();
+
+    return d;
 }
 
 void
@@ -90,6 +94,9 @@ diffsteerUpdate(Diffsteer * d)
     mutexTake(d->mutex, -1);
     switch (d->mode)
     {
+    case DIFFSTEER_IDLE:
+        // do nothing
+        break;
     case DIFFSTEER_ROTATING:
         updateRotate(d);
         break;
@@ -106,8 +113,8 @@ updateRotate(Diffsteer * d)
     float errorHeading = d->targetHeading - d->state->heading;
     float command = errorHeading * 0.5f * d->gainHeading;
 
-    d->motorLeftSet(d-motorLeft, -(int)command);
-    d->motorRightSet(d-motorRight, (int)command);
+    d->motorLeftSet(d->motorLeft, -(int)command);
+    d->motorRightSet(d->motorRight, (int)command);
 }
 
 static void
@@ -135,15 +142,15 @@ updateMove(Diffsteer * d)
         commandHigher = &commandRight;
         commandLower = &commandLeft;
     }
-    if (commandHigher > 127.0f)
+    if (*commandHigher > 127.0f)
     {
-        commandHigher = 127.0f;
-        commandLower = 127.0f - fabsf(commandDiff);
+        *commandHigher = 127.0f;
+        *commandLower = 127.0f - fabsf(commandDiff);
     }
-    if (commandLower < -127.0f)
+    if (*commandLower < -127.0f)
     {
-        commandLower = -127.0f;
-        commandHigher = -127.0f + fabsf(commandDiff);
+        *commandLower = -127.0f;
+        *commandHigher = -127.0f + fabsf(commandDiff);
     }
 
     d->motorLeftSet(d->motorLeft, (int)commandLeft);

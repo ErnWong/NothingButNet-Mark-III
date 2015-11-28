@@ -11,7 +11,7 @@ extern "C" {
 
 
 struct Diffsteer;
-typedef struct Diffsteer;
+typedef struct Diffsteer Diffsteer;
 
 typedef enum
 DiffsteerMode
