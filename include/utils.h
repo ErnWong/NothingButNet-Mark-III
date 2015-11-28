@@ -9,6 +9,11 @@ extern "C" {
 #endif
 
 
+
+extern const float PI;
+extern const float TAU;
+
+
 //
 // Updates the given variable with the current time in microseconds,
 // and returns the time difference in seconds.

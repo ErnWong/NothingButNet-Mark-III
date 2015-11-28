@@ -6,7 +6,7 @@
 
 
 const float SHIM_DEGREES_PER_REV = 360.0f;
-const float SHIM_RADIANS_PER_REV = 6.283185307179586f;
+const float SHIM_RADIANS_PER_REV = TAU;
 
 const float TICKS_PER_REV_ENCODER = 360.0f;
 const float TICKS_PER_REV_IME_269 = 240.448f;
