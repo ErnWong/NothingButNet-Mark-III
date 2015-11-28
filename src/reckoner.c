@@ -161,6 +161,7 @@ static void
 updateHeading(Reckoner * r)
 {
     r->state.heading += (r->rightChange - r->leftChange) / r->wheelSeparation;
+    r->state.heading = fmodf(r->state.heading + PI, TAU) - PI;
 }
 
 static void
