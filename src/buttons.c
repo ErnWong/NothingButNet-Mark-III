@@ -25,7 +25,7 @@ struct Button
 struct HandlerList
 {
     ButtonHandler handler;
-    ButtonHandle handle;
+    void * handle;
     HandlerList * next;
 };
 
@@ -37,7 +37,7 @@ static void initButton(
 );
 static void updateButton(Button*);
 static void callHandlers(HandlerList*);
-static HandlerList * initHandlerList(ButtonHandler, ButtonHandle);
+static HandlerList * initHandlerList(ButtonHandler, void*);
 static void addToHandlerList(HandlerList * item, HandlerList ** destination);
 
 static Button buttons[JOY_NUMOFSLOTS][JOY_NUMOFBUTTONS] = {0};
@@ -47,7 +47,7 @@ buttonOnchange(
     JoystickSlot slot,
     JoystickButton button,
     ButtonHandler handler,
-    ButtonHandle handle
+    void * handle
 ){
     if (slot >= JOY_NUMOFSLOTS) return;
     if (button >= JOY_NUMOFBUTTONS) return;
@@ -60,7 +60,7 @@ buttonOnup(
     JoystickSlot slot,
     JoystickButton button,
     ButtonHandler handler,
-    ButtonHandle handle
+    void * handle
 ){
     if (slot >= JOY_NUMOFSLOTS) return;
     if (button >= JOY_NUMOFBUTTONS) return;
@@ -73,7 +73,7 @@ buttonOndown(
     JoystickSlot slot,
     JoystickButton button,
     ButtonHandler handler,
-    ButtonHandle handle
+    void * handle
 ){
     if (slot >= JOY_NUMOFSLOTS) return;
     if (button >= JOY_NUMOFBUTTONS) return;
@@ -154,7 +154,7 @@ callHandlers(HandlerList * list)
 }
 
 static HandlerList *
-initHandlerList(ButtonHandler handler, ButtonHandle handle)
+initHandlerList(ButtonHandler handler, void * handle)
 {
     HandlerList * handlerList = malloc(sizeof(HandlerList));
     handlerList->handler = handler;

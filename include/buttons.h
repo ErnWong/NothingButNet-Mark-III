@@ -7,8 +7,7 @@ extern "C" {
 
 
 
-typedef void * ButtonHandle;
-typedef void (*ButtonHandler)(ButtonHandle);
+typedef void (*ButtonHandler)(void*);
 
 typedef enum
 JoystickSlot
@@ -39,13 +38,13 @@ JoystickButton
 JoystickButton;
 
 void
-buttonOnChange(JoystickSlot, JoystickButton, ButtonHandler, ButtonHandle);
+buttonOnChange(JoystickSlot, JoystickButton, ButtonHandler, void * handle);
 
 void
-buttonOnup(JoystickSlot, JoystickButton, ButtonHandler, ButtonHandle);
+buttonOnup(JoystickSlot, JoystickButton, ButtonHandler, void * handle);
 
 void
-buttonOndown(JoystickSlot, JoystickButton, ButtonHandler, ButtonHandle);
+buttonOndown(JoystickSlot, JoystickButton, ButtonHandler, void * handle);
 
 void
 buttonsUpdate();
