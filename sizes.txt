@@ -1,0 +1,124 @@
+# Runtime approx runtime usage
+
+
+## buttons.c
+
+
+Button:             = 20 bytes
+HandlerList:        = 12 bytes
+
+buttons.c:          = 2 slots * 12 buttons per slot * (20 bytes per button +  4 handlers per button * 12 bytes per handler)
+                    = 1632 bytes
+
+
+## control.c
+
+
+Pid:                = 20 bytes
+Pid portal:         = 4 entries * 36 bytes per entry
+                    = 144 bytes
+
+Tbh:                = 28 bytes
+Tbh portal:         = 5 entries * 36 bytes per entry
+                    = 180 bytes
+
+Bb:                 = 16 bytes
+Bb portal:          = 4 entries * 36 bytes per entry
+                    = 144 bytes
+
+
+## control.h
+
+
+ControlSystem:      = 28 bytes
+
+
+## diffsteer-control.c
+
+
+Diffsteer:          = 48 bytes
+Diffsteer portal:   = 6 entries * 36 bytes per entry
+                    = 216 bytes
+
+
+## drive-style.c
+
+
+None
+
+
+## drive.c
+
+
+Drive:              = 36 bytes
+DriveControl:       = 12 bytes
+
+
+## flap.c
+
+
+Flap:               = 92 bytes
+Flap portal:        = 7 entries * 36 bytes per entry
+                    = 252 bytes
+
+
+## flywheel.c
+
+
+Flywheel:           = 4 bytes * (20 + 8 + 8) + 28 bytes per ControlSystem
+                    = 172 bytes
+Flywheel portal:    = 20 entries * 36 bytes per entry
+                    = 720 bytes
+
+
+## pigeon.c
+
+
+PortalEntry:        = 36 bytes
+PortalEntryList:    = 8 bytes
+Portal:             = 44 bytes
+Pigeon:             = 36 bytes + 32 * 80 bytes
+                    = 2596 bytes
+Pigeon portal:      = 2 entries * 36 bytes per entry
+                    = 72 bytes
+
+
+## reckoner.h
+
+
+ReckonerState:      = 16 bytes
+
+
+## reckoner.c
+
+
+Reckoner:           = 21 * 4 bytes + 2 EncoderReading * 8 bytes per EncoderReading + 1 ReckonerState * 16 bytes per ReckonerState
+                    = 116 bytes
+Reckoner portals:   = 19 entries * 36 bytes per entry
+                    = 684 bytes
+
+
+## shims.h
+
+
+EncoderReading:     = 8 bytes
+
+
+## shims.c
+
+
+EncoderShim:        = 16 bytes
+ImeShim:            = 16 bytes
+MotorShim:          = 12 bytes
+DigitalShim:        = 12 bytes
+EncoderRangeShim:   = 20 bytes
+
+
+## Total approx usage
+
+= 1 Reckoner + 2 Flywheel + 1 Pigeon + 1 Flap + 1 Drive + 3 Drivestyle + 1 Diffsteercontrol + 1 Button + 2 Tbh
+= 1632 + 2*180 + 216 + 32 + 3*12 + 92 + 252 + 2*172 + 2*720 + 2596 + 72 + 116 + 684 + 2*16 + 12 * 12 + 2 * 16 + 2 * 12
+= 8104 bytes
+
+= 8.1 KB
+= 12.7% of 64KB
