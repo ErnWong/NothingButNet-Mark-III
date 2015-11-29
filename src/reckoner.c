@@ -305,4 +305,5 @@ setupPortal(Reckoner * r, ReckonerSetup setup)
         }
     };
     portalAddBatch(r->portal, setups);
+    portalSetStreamKeys(portal, "x y heading velocity");
 }
