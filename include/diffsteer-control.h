@@ -38,6 +38,9 @@ DiffsteerSetup
 }
 DiffsteerSetup;
 
+Diffsteer *
+diffsteerInit(DiffsteerSetup);
+
 void
 diffsteerRotate(Diffsteer*, float heading);
 
