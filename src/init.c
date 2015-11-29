@@ -7,6 +7,7 @@
 #include "control.h"
 #include "flap.h"
 #include "reckoner.h"
+#include "diffsteer-control.h"
 #include "shims.h"
 
 Pigeon * pigeon = NULL;
@@ -17,6 +18,8 @@ Encoder fwAboveEncoder = NULL;
 Encoder fwBelowEncoder = NULL;
 Flap * fwFlap = NULL;
 Reckoner * reckoner = NULL;
+Diffsteer * diffsteer = NULL;
+
 
 static float fwAboveEstimator(float target);
 static char * pigeonGets(char * buffer, int maxSize);
@@ -38,6 +41,10 @@ void initialize()
     //  - Init sensors, LCDs, Global vars, IMEs
     fwBelowEncoder = encoderInit(1, 2, false);
     fwAboveEncoder = encoderInit(3, 4, false);
+
+    MotorHandle motorDriveLeft = motorGetHandle(7, false);
+    MotorHandle motorDriveRight = motorGetHandle(6, false);
+
     pigeon = pigeonInit(pigeonGets, pigeonPuts, millis);
     /*
 
@@ -169,6 +176,21 @@ void initialize()
     };
     reckoner = reckonerInit(reckonerSetup);
 
+    DiffsteerSetup diffsteerSetup =
+    {
+        .id = "diffsteer",
+        .pigeon = pigeon,
+
+        .gainDistance = 1.0f,
+        .gainHeading = 1.0f,
+
+        .motorLeftSetter = motorSetter,
+        .motorLeft = motorDriveLeft,
+        .motorRightSetter = motorSetter,
+        .motorRight = motorDriveRight
+    };
+    diffsteer = diffsteerInit(diffsteerSetup);
+
     DriveSetup driveSetup =
     {
         .motorSetters =
@@ -178,8 +200,8 @@ void initialize()
         },
         .motors =
         {
-            motorGetHandle(7, false),
-            motorGetHandle(6, false)
+            motorDriveLeft,
+            motorDriveRight
         }
     };
     drive = driveInit(driveSetup);

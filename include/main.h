@@ -7,6 +7,8 @@
 #include "pigeon.h"
 #include "flywheel.h"
 #include "flap.h"
+#include "reckoner.h"
+#include "diffsteer-control.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +33,8 @@ extern Flywheel * fwBelow;
 extern Encoder fwBelowEncoder;
 extern Encoder fwAboveEncoder;
 extern Flap * fwFlap;
+extern Reckoner * reckoner;
+extern Diffsteer * diffsteer;
 
 
 
