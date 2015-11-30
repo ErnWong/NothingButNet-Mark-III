@@ -14,6 +14,8 @@ extern "C" {
 
 // Typedefs {{{
 
+typedef void (*FlywheelHandler)(void*);
+
 struct Flywheel;
 typedef struct Flywheel Flywheel;
 
@@ -55,6 +57,11 @@ FlywheelSetup
     float thresholdError;
     float thresholdDerivative;
     int checkCycle;
+
+    FlywheelHandler onready;
+    void * onreadyHandle;
+    FlywheelHandler onactive;
+    void * onactiveHandle;
 }
 FlywheelSetup;
 

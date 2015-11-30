@@ -45,6 +45,10 @@ struct Flywheel
     int checkCycle;
 
     Semaphore readySemaphore;
+    FlywheelHandler onready;
+    void * onreadyHandle;
+    FlywheelHandler onactive;
+    void * onactiveHandle;
 
     Mutex mutex;
     TaskHandle task;
@@ -123,6 +127,10 @@ flywheelInit(FlywheelSetup setup)
     flywheel->checkCycle = setup.checkCycle;
 
     flywheel->readySemaphore = semaphoreCreate();
+    flywheel->onready = setup.onready;
+    flywheel->onreadyHandle = setup.onreadyHandle;
+    flywheel->onactive = setup.onactive;
+    flywheel->onactiveHandle = setup.onactiveHandle;
 
     flywheel->mutex = mutexCreate();
     flywheel->task = NULL;
@@ -331,6 +339,11 @@ activate(Flywheel * flywheel)
     portalUpdate(flywheel->portal, "ready");
     portalUpdate(flywheel->portal, "delay");
 
+    if (flywheel->onactive != NULL)
+    {
+        flywheel->onactive(flywheel->onactiveHandle);
+    }
+
     // TODO: Signal not ready?
 }
 
@@ -346,6 +359,11 @@ readify(Flywheel * flywheel)
     }
     portalUpdate(flywheel->portal, "ready");
     portalUpdate(flywheel->portal, "delay");
+
+    if (flywheel->onready != NULL)
+    {
+        flywheel->onready(flywheel->onreadyHandle);
+    }
 
     semaphoreGive(flywheel->readySemaphore);
 }
