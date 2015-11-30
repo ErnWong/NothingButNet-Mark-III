@@ -363,37 +363,43 @@ portalGetStreamKeys(Portal * portal, char * destination)
 }
 
 
+// Note: sequence will be modified
 bool
 portalSetStreamKeys(Portal * portal, char * sequence)
 {
     if (portal == NULL) return false;
-    PortalEntryList * list = malloc(sizeof(PortalEntryList));
-    PortalEntryList * newRoot = list;
+
+    PortalEntryList initial;
+    PortalEntryList * list = &initial;
 
     // Try to create the list
+
     char * key = strtok(sequence, " ");
     while (true)
     {
         PortalEntry ** entryPtr = findEntry(key, &portal->topEntry);
 
-        if (entryPtr == NULL)
+        if (*entryPtr == NULL)
         {
             // Fail, stop, cleanup.
-            deleteEntryList(newRoot);
+            deleteEntryList(initial.next);
+            puts("failed creating list");
             return false;
         }
+        list->next = malloc(sizeof(PortalEntryList));
+        list = list->next;
+
         list->entry = *entryPtr;
+        list->next = NULL;
 
         key = strtok(NULL, " ");
         if (key == NULL) break;
-
-        list->next = malloc(sizeof(PortalEntryList));
-        list = list->next;
     }
 
     deleteEntryList(portal->streamList);
     portal->streamList = NULL;
-    portal->streamList = newRoot;
+    portal->streamList = initial.next;
+
     return true;
 }
 
