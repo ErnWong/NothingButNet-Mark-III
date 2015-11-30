@@ -38,6 +38,8 @@ struct Reckoner
     float velocityLeft;
     float velocityRight;
     ReckonerState state;
+
+    Mutex mutex;
 };
 
 static void updateReadings(Reckoner*);
@@ -87,6 +89,8 @@ reckonerInit(ReckonerSetup setup)
     r->encoderRightGet = setup.encoderRightGetter;
     r->encoderRight = setup.encoderRight;
 
+    r->mutex = mutexCreate();
+
     return r;
 }
 
@@ -99,12 +103,14 @@ reckonerGetState(Reckoner * r)
 void
 reckonerUpdate(Reckoner * r)
 {
+    mutexTake(r->mutex, -1);
     updateReadings(r);
     updateWheels(r);
     updateVelocity(r);
     updateHeading(r);
     updatePosition(r);
     updatePortal(r);
+    mutexGive(r->mutex);
 }
 
 static void
