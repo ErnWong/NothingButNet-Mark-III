@@ -573,16 +573,18 @@ task(void * pigeonData)
         char * result = fgets(input, LINESIZE, stdin);
         if (result == NULL) continue;
 
-        trimSpaces(input);
+        char * inputTrimmed = trimSpaces(input);
 
-        char * path = strtok(input, " ");
+        if (inputTrimmed[0] == '\0') continue;
+
+        char * path = strtok(inputTrimmed, " ");
         char * message = strtok(NULL, "");
 
         char * portalId = strtok(path, ".");
         char * entryKey = strtok(NULL, ".");
 
-        trimSpaces(portalId);
-        trimSpaces(entryKey);
+        portalId = trimSpaces(portalId);
+        entryKey = trimSpaces(entryKey);
 
         Portal ** portalPos = findPortal(portalId, &pigeon->topPortal);
         if (*portalPos == NULL)
