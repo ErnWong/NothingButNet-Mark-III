@@ -2,6 +2,7 @@
 #define DIFFSTEER_H_
 
 #include "pigeon.h"
+#include "reckoner.h"
 #include "shims.h"
 
 #ifdef __cplusplus
@@ -27,6 +28,8 @@ DiffsteerSetup
 {
     char * id;
     Pigeon * pigeon;
+
+    ReckonerState * state;
 
     float gainDistance;
     float gainHeading;

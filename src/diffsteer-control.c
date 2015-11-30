@@ -42,6 +42,8 @@ diffsteerInit(DiffsteerSetup setup)
 
     setupPortal(d, setup);
 
+    d->state = setup.state;
+
     d->mode = DIFFSTEER_IDLE;
     d->targetX = 0.0f;
     d->targetY = 0.0f;
