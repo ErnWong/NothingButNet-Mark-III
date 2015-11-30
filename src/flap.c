@@ -308,6 +308,7 @@ initPortal(Flap * flap, FlapSetup setup)
         }
     };
     portalAddBatch(flap->portal, setups);
+    portalReady(flap->portal);
 }
 
 static void

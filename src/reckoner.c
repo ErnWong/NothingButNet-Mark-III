@@ -296,6 +296,11 @@ setupPortal(Reckoner * r, ReckonerSetup setup)
             .handle = &r->state.x,
             .stream = true
         },
+        {
+            .key = "keys",
+            .handler = portalStreamKeyHandler,
+            .handle = r->portal
+        },
 
         // End terminating struct
         {
@@ -305,5 +310,7 @@ setupPortal(Reckoner * r, ReckonerSetup setup)
         }
     };
     portalAddBatch(r->portal, setups);
-    portalSetStreamKeys(r->portal, "x y heading velocity");
+    char streamOrder[80] = "x y heading velocity";
+    portalSetStreamKeys(r->portal, streamOrder);
+    portalReady(r->portal);
 }

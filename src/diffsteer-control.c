@@ -208,6 +208,7 @@ setupPortal(Diffsteer * d, DiffsteerSetup setup)
         }
     };
     portalAddBatch(d->portal, setups);
+    portalReady(d->portal);
 }
 
 
