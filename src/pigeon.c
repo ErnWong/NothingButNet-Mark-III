@@ -11,7 +11,6 @@
 
 // Private, for clarity
 
-#define MAXMSG PIGEON_MAXMESSAGES
 #define LINESIZE PIGEON_LINESIZE
 #define ALIGNSIZE PIGEON_ALIGNSIZE
 #define UNUSED(x) (void)(x)
@@ -75,9 +74,6 @@ struct Portal
 
 struct Pigeon
 {
-    char messages[MAXMSG][LINESIZE];
-    PortalEntry * messageUsers[MAXMSG];
-    int vacantIndex;
     Portal * topPortal;
     Portal * pigeonPortal;
     PigeonIn gets;
@@ -104,7 +100,6 @@ static void writeMessage(
 static PortalEntry ** findEntry(const char * key, PortalEntry **);
 static Portal ** findPortal(const char * id, Portal **);
 static void deleteEntryList(PortalEntryList*);
-static void allocateMessage(Pigeon*, PortalEntry*);
 static void setupPigeonPortal(Pigeon*);
 static void enablePortalHandler(void * handle, char * message, char * response);
 static void disablePortalHandler(void * handle, char * message, char * response);
@@ -121,10 +116,6 @@ Pigeon *
 pigeonInit(PigeonIn getter, PigeonOut putter, PigeonMillis clock)
 {
     Pigeon * pigeon = malloc(sizeof(Pigeon));
-
-    memset(&pigeon->messages, 0, sizeof(pigeon->messages));
-    memset(&pigeon->messageUsers, 0, sizeof(pigeon->messageUsers));
-    pigeon->vacantIndex = 0;
 
     pigeon->gets = getter;
     pigeon->puts = putter;
@@ -383,7 +374,13 @@ portalEnable(Portal * portal)
     PortalEntryList * entryList = portal->entryList;
     while (entryList != NULL)
     {
-        allocateMessage(portal->pigeon, entryList->entry);
+        if (entryList->entry->message != NULL)
+        {
+            free(entryList->entry->message);
+            entryList->entry->message = NULL;
+        }
+        entryList->entry->message = malloc(LINESIZE * sizeof(char));
+        entryList->entry->message[0] = '\0';
         entryList = entryList->next;
     }
 }
@@ -394,6 +391,13 @@ portalDisable(Portal * portal)
 {
     if (portal == NULL) return;
     portal->enabled = false;
+    PortalEntryList * entryList = portal->entryList;
+    while (entryList != NULL)
+    {
+        free(entryList->entry->message);
+        entryList->entry->message = NULL;
+        entryList = entryList->next;
+    }
 }
 
 
@@ -752,23 +756,6 @@ deleteEntryList(PortalEntryList * list)
         list = list->next;
         free(old);
     }
-}
-
-static void
-allocateMessage(Pigeon * pigeon, PortalEntry * entry)
-{
-    if (pigeon->messageUsers[pigeon->vacantIndex] != NULL)
-    {
-        PortalEntry * oldEntry = pigeon->messageUsers[pigeon->vacantIndex];
-        oldEntry->message = NULL;
-        pigeon->messageUsers[pigeon->vacantIndex] = NULL;
-    }
-    pigeon->messageUsers[pigeon->vacantIndex] = entry;
-    entry->message = &pigeon->messages[pigeon->vacantIndex][0];
-    pigeon->messages[pigeon->vacantIndex][0] = '\0';
-
-    pigeon->vacantIndex++;
-    if (pigeon->vacantIndex >= MAXMSG) pigeon->vacantIndex = 0;
 }
 
 static void
