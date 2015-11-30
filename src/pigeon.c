@@ -108,6 +108,8 @@ static void allocateMessage(Pigeon*, PortalEntry*);
 static void setupPigeonPortal(Pigeon*);
 static void enablePortalHandler(void * handle, char * message, char * response);
 static void disablePortalHandler(void * handle, char * message, char * response);
+static void getKeysHandler(void * handle, char * message, char * response);
+static void logError(Pigeon*, char * message);
 
 // }}}
 
@@ -185,7 +187,11 @@ void
 portalAdd(Portal * portal, PortalEntrySetup setup)
 {
     if (portal == NULL) return;
-    if (portal->ready) return;
+    if (portal->ready)
+    {
+        logError(portal->pigeon, "add: portal already ready... ignoring add");
+        return;
+    }
 
     PortalEntry * entry = malloc(sizeof(PortalEntry));
 
@@ -239,14 +245,30 @@ void
 portalSet(Portal * portal, const char * key, const char * message)
 {
     if (portal == NULL) return;
-    if (!portal->enabled) return;
+
+    if (!portal->enabled)
+    {
+        return;
+    }
 
     PortalEntry ** location = findEntry(key, &portal->topEntry);
 
-    if (*location == NULL) return;
+    if (*location == NULL)
+    {
+        char message[80];
+        snprintf(message, 80, "set: cannot find entry with key %s\n", key);
+        logError(portal->pigeon, message);
+        return;
+    }
 
     PortalEntry * entry = *location;
-    if (entry->message == NULL) return;
+    if (entry->message == NULL)
+    {
+        char message[80];
+        snprintf(message, 80, "set: message not allocated for key %s\n", key);
+        logError(portal->pigeon, message);
+        return;
+    }
 
     stringCopy(entry->message, message, LINESIZE);
 
@@ -266,15 +288,31 @@ void
 portalUpdate(Portal * portal, const char * key)
 {
     if (portal == NULL) return;
-    if (!portal->enabled) return;
+
+    if (!portal->enabled)
+    {
+        return;
+    }
 
     PortalEntry ** location = findEntry(key, &portal->topEntry);
 
-    if (*location == NULL) return;
+    if (*location == NULL)
+    {
+        char message[80];
+        snprintf(message, 80, "update: cannot find entry with key '%s'", key);
+        logError(portal->pigeon, message);
+        return;
+    }
 
     PortalEntry * entry = *location;
 
-    if (entry->message == NULL) return;
+    if (entry->message == NULL)
+    {
+        char message[80];
+        snprintf(message, 80, "update: message not allocated for key '%s'", key);
+        logError(portal->pigeon, message);
+        return;
+    }
 
     entry->handler(entry->handle, NULL, entry->message);
 
@@ -294,7 +332,11 @@ void
 portalFlush(Portal * portal)
 {
     if (portal == NULL) return;
-    if (!portal->enabled) return;
+
+    if (!portal->enabled)
+    {
+        return;
+    }
 
     PortalEntryList * list = portal->streamList;
     char output[LINESIZE] = {0};
@@ -305,6 +347,16 @@ portalFlush(Portal * portal)
     }
     while (true)
     {
+        if (list->entry == NULL)
+        {
+            logError(portal->pigeon, "flush: null entry encountered... aborting");
+            return;
+        }
+        if (list->entry->message == NULL)
+        {
+            logError(portal->pigeon, "flush: entry message not allocated... aborting");
+            return;
+        }
         stringAppend(output, list->entry->message, LINESIZE);
         list = list->next;
         if (list == NULL) break;
@@ -352,7 +404,10 @@ portalGetStreamKeys(Portal * portal, char * destination)
     PortalEntryList * list = portal->streamList;
 
     destination[0] = '\0';
-    if (list == NULL) return;
+    if (list == NULL)
+    {
+        return;
+    }
     while (true)
     {
         stringAppend(destination, list->entry->key, LINESIZE);
@@ -383,7 +438,9 @@ portalSetStreamKeys(Portal * portal, char * sequence)
         {
             // Fail, stop, cleanup.
             deleteEntryList(initial.next);
-            puts("failed creating list");
+            char message[80];
+            snprintf(message, 80, "setStreamKeys: cannot find entry with key '%s'", key);
+            logError(portal->pigeon, message);
             return false;
         }
         list->next = malloc(sizeof(PortalEntryList));
@@ -528,11 +585,23 @@ task(void * pigeonData)
         trimSpaces(entryKey);
 
         Portal ** portalPos = findPortal(portalId, &pigeon->topPortal);
-        if (*portalPos == NULL) continue;
+        if (*portalPos == NULL)
+        {
+            char message[80];
+            snprintf(message, 80, "cannot find portal with id '%s'", portalId);
+            logError(pigeon, message);
+            continue;
+        }
         Portal * portal = *portalPos;
 
         PortalEntry ** entryPos = findEntry(entryKey, &portal->topEntry);
-        if (*entryPos == NULL) continue;
+        if (*entryPos == NULL)
+        {
+            char message[80];
+            snprintf(message, 80, "cannot find entry with key '%s'", entryKey);
+            logError(pigeon, message);
+            continue;
+        }
         PortalEntry * entry = *entryPos;
 
         if (entry->handler == NULL) continue;
@@ -717,6 +786,15 @@ setupPigeonPortal(Pigeon * pigeon)
             .handler = disablePortalHandler,
             .handle = pigeon
         },
+        {
+            .key = "keys",
+            .handler = getKeysHandler,
+            .handle = pigeon
+        },
+        {
+            .key = "error",
+            .onchange = true
+        },
 
         // End terminating struct
         {
@@ -761,6 +839,23 @@ disablePortalHandler(void * handle, char * message, char * response)
         portalDisable(portal);
         id = strtok(NULL, "");
     }
+}
+
+static void
+getKeysHandler(void * handle, char * message, char * response)
+{
+    if (handle == NULL) return;
+    if (message == NULL) return;
+    if (response == NULL) return;
+    Pigeon * pigeon = handle;
+    Portal * portal = *findPortal(message, &pigeon->topPortal);
+    portalGetStreamKeys(portal, response);
+}
+
+static void
+logError(Pigeon * pigeon, char * message)
+{
+    portalSet(pigeon->pigeonPortal, "error", message);
 }
 
 // }}}
