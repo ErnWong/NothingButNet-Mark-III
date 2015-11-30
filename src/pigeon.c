@@ -333,7 +333,7 @@ portalFlush(Portal * portal)
     char output[LINESIZE] = {0};
     if (list == NULL)
     {
-        writeMessage(portal->pigeon, portal->id, "", "");
+        // Don't write anything if no stream values
         return;
     }
     while (true)
