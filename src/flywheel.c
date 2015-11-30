@@ -406,9 +406,10 @@ setupPortal(Flywheel * flywheel, FlywheelSetup setup)
             .stream = true
         },
         {
-            .key = "derivatve",
+            .key = "derivative",
             .handler = portalFloatHandler,
-            .handle = &flywheel->system.derivative
+            .handle = &flywheel->system.derivative,
+            .stream = true
         },
         {
             .key = "error",
