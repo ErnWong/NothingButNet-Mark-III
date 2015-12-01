@@ -3,15 +3,22 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include "pigeon.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-
 #define PI 3.14159265358979323846f
 #define TAU 6.283185307179586f
+
+#define LOG_ERROR(portal, msg, ...) \
+    do { \
+        char buffer[PIGEON_LINESIZE]; \
+        snprintf(buffer, PIGEON_LINESIZE, msg, __VA_ARGS__); \
+        portalSet(portal, buffer); \
+    } while (0)
 
 //
 // Updates the given variable with the current time in microseconds,
