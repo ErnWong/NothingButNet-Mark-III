@@ -10,6 +10,8 @@
 #include "diffsteer-control.h"
 #include "shims.h"
 
+#define UNUSED(x) (void)(x)
+
 Pigeon * pigeon = NULL;
 Drive * drive = NULL;
 Flywheel * fwAbove = NULL;
@@ -20,8 +22,12 @@ Flap * fwFlap = NULL;
 Reckoner * reckoner = NULL;
 Diffsteer * diffsteer = NULL;
 
+unsigned char fwBelowLED = 7;
+unsigned char fwAboveLED = 8;
 
 static float fwAboveEstimator(float target);
+static void fwAboveReadied(void*);
+static void fwAboveActivated(void*);
 static char * pigeonGets(char * buffer, int maxSize);
 static void pigeonPuts(const char * message);
 
@@ -32,6 +38,8 @@ void initializeIO()
     //  - Set default pin modes (pinMode)
     //  - Set port states (digitalWrite)
     //  - Configure UART (usartOpen), but not LCD (lcdInit)
+    pinMode(fwBelowLED, OUTPUT);
+    pinMode(fwAboveLED, OUTPUT);
 }
 
 void initialize()
@@ -46,20 +54,19 @@ void initialize()
     MotorHandle motorDriveRight = motorGetHandle(6, false);
 
     pigeon = pigeonInit(pigeonGets, pigeonPuts, millis);
-    /*
 
     FlywheelSetup fwBelowSetup =
     {
-        .id = "flywheel-below",
+        .id = "fwbelow",
         .pigeon = pigeon,
 
-        .gearing = 5.0f,
+        .gearing = 25.0f,
         .smoothing = 0.2f,
 
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
         .controlResetter = tbhReset,
-        .control = tbhInit(0.2, tbhDummyEstimator),
+        .control = tbhInit(0.2, fwAboveEstimator),
 
         .encoderGetter = encoderGetter,
         .encoderResetter = encoderResetter,
@@ -68,26 +75,24 @@ void initialize()
         .motorSetters =
         {
             motorSetter,
-            motorSetter,
             motorSetter
         },
         .motors =
         {
-            motorGetHandle(1, false),
-            motorGetHandle(2, false),
+            motorGetHandle(2, true),
+            motorGetHandle(3, true)
         },
 
         .priorityReady = 2,
         .priorityActive = 2,
         .frameDelayReady = 200,
-        .frameDelayActive = 20,
+        .frameDelayActive = 60,
 
-        .thresholdError = 1.0f,
-        .thresholdDerivative = 1.0f,
+        .thresholdError = 10.0f,
+        .thresholdDerivative = 100.0f,
         .checkCycle = 20
     };
     fwBelow = flywheelInit(fwBelowSetup);
-    */
 
     FlywheelSetup fwAboveSetup =
     {
@@ -120,11 +125,16 @@ void initialize()
         .priorityReady = 2,
         .priorityActive = 2,
         .frameDelayReady = 200,
-        .frameDelayActive = 20,
+        .frameDelayActive = 60,
 
-        .thresholdError = 1.0f,
-        .thresholdDerivative = 1.0f,
-        .checkCycle = 20
+        .thresholdError = 10.0f,
+        .thresholdDerivative = 100.0f,
+        .checkCycle = 20,
+
+        .onready = fwAboveReadied,
+        .onreadyHandle = NULL,
+        .onactive = fwAboveActivated,
+        .onactiveHandle = NULL,
     };
     fwAbove = flywheelInit(fwAboveSetup);
 
@@ -181,6 +191,8 @@ void initialize()
         .id = "diffsteer",
         .pigeon = pigeon,
 
+        .state = reckonerGetState(reckoner),
+
         .gainDistance = 1.0f,
         .gainHeading = 1.0f,
 
@@ -209,13 +221,26 @@ void initialize()
     driveAdd(drive, arcadeRightStyle);
 
     pigeonReady(pigeon);
-
 }
 
 static float
 fwAboveEstimator(float target)
 {
     return 18.195f + 2.2052e-5f * target * target;
+}
+
+static void
+fwAboveReadied(void * handle)
+{
+    UNUSED(handle);
+    digitalWrite(fwAboveLED, HIGH);
+}
+
+static void
+fwAboveActivated(void * handle)
+{
+    UNUSED(handle);
+    digitalWrite(fwAboveLED, LOW);
 }
 
 static char *
