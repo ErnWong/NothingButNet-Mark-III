@@ -6,7 +6,11 @@
 #include "utils.h"
 
 
+
+
 #define UNUSED(x) (void)(x)
+
+
 
 
 // PID Controller {{{
@@ -22,6 +26,7 @@ Pid
 }
 Pid;
 
+
 ControlHandle
 pidInit(float gainP, float gainI, float gainD)
 {
@@ -34,6 +39,7 @@ pidInit(float gainP, float gainI, float gainD)
     return pid;
 }
 
+
 void
 pidReset(ControlHandle handle)
 {
@@ -41,6 +47,7 @@ pidReset(ControlHandle handle)
     pid->integral = 0;
     portalUpdate(pid->portal, "integral");
 }
+
 
 float
 pidUpdate(ControlHandle handle, ControlSystem * system)
@@ -59,6 +66,7 @@ pidUpdate(ControlHandle handle, ControlSystem * system)
 
     return system->action;
 }
+
 
 void
 pidSetup(ControlHandle handle, Portal * portal)
@@ -101,6 +109,8 @@ pidSetup(ControlHandle handle, Portal * portal)
 // }}}
 
 
+
+
 // TBH Controller {{{
 
 typedef struct
@@ -116,6 +126,7 @@ Tbh
 }
 Tbh;
 
+
 ControlHandle
 tbhInit(float gain, TbhEstimator estimator)
 {
@@ -126,6 +137,7 @@ tbhInit(float gain, TbhEstimator estimator)
     tbhReset(tbh);
     return tbh;
 }
+
 
 void
 tbhReset(ControlHandle handle)
@@ -140,6 +152,7 @@ tbhReset(ControlHandle handle)
     portalUpdate(tbh->portal, "last-target");
     portalUpdate(tbh->portal, "crossed");
 }
+
 
 float
 tbhUpdate(ControlHandle handle, ControlSystem * system)
@@ -174,6 +187,7 @@ tbhUpdate(ControlHandle handle, ControlSystem * system)
     portalUpdate(tbh->portal, "last-error");
     return system->action;
 }
+
 
 void
 tbhSetup(ControlHandle handle, Portal * portal)
@@ -218,6 +232,7 @@ tbhSetup(ControlHandle handle, Portal * portal)
     portalAddBatch(portal, setups);
 }
 
+
 float
 tbhDummyEstimator(float target)
 {
@@ -226,6 +241,8 @@ tbhDummyEstimator(float target)
 }
 
 // }}}
+
+
 
 
 // Bang Bang Controller {{{
@@ -240,9 +257,9 @@ BangBang
 }
 BangBang;
 
+
 ControlHandle
-bangBangInit
-(
+bangBangInit(
     float actionHigh,
     float actionLow,
     float triggerHigh,
@@ -256,11 +273,13 @@ bangBangInit
     return bb;
 }
 
+
 void
 bangBangReset(ControlHandle handle)
 {
     UNUSED(handle);
 }
+
 
 float
 bangBangUpdate(ControlHandle handle, ControlSystem * system)
@@ -276,6 +295,7 @@ bangBangUpdate(ControlHandle handle, ControlSystem * system)
     }
     return system->action;
 }
+
 
 void
 bangBangSetup(ControlHandle handle, Portal * portal)

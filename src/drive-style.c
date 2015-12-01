@@ -2,6 +2,7 @@
 
 #include <API.h>
 
+
 void tankStyle(MotorHandle * motors, MotorSetter * motorSet)
 {
     int cmdLeft = joystickGetAnalog(1, 3);
@@ -10,6 +11,7 @@ void tankStyle(MotorHandle * motors, MotorSetter * motorSet)
     motorSet[DRIVE_TANK_RIGHT](motors[DRIVE_TANK_RIGHT], cmdRight);
 }
 
+
 void arcadeLeftStyle(MotorHandle * motors, MotorSetter * motorSet)
 {
     int cmdLeft = joystickGetAnalog(1, 3) + joystickGetAnalog(1, 4);
@@ -17,6 +19,7 @@ void arcadeLeftStyle(MotorHandle * motors, MotorSetter * motorSet)
     motorSet[DRIVE_TANK_LEFT](motors[DRIVE_TANK_LEFT], cmdLeft);
     motorSet[DRIVE_TANK_RIGHT](motors[DRIVE_TANK_RIGHT], cmdRight);
 }
+
 
 void arcadeRightStyle(MotorHandle * motors, MotorSetter * motorSet)
 {

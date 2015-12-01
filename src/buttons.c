@@ -5,11 +5,17 @@
 #include <stddef.h>
 
 
+
+
+// Private structs {{{
+
 struct Button;
 typedef struct Button Button;
 
+
 struct HandlerList;
 typedef struct HandlerList HandlerList;
+
 
 struct Button
 {
@@ -22,12 +28,20 @@ struct Button
     unsigned char button;
 };
 
+
 struct HandlerList
 {
     ButtonHandler handler;
     void * handle;
     HandlerList * next;
 };
+
+// }}}
+
+
+
+
+// Private functions, forward declarations {{{
 
 static void initButton(
     Button*,
@@ -40,7 +54,21 @@ static void callHandlers(HandlerList*);
 static HandlerList * initHandlerList(ButtonHandler, void*);
 static void addToHandlerList(HandlerList * item, HandlerList ** destination);
 
+// }}}
+
+
+
+
+// Global statics {{{
+
 static Button buttons[JOY_NUMOFSLOTS][JOY_NUMOFBUTTONS] = {0};
+
+// }}}
+
+
+
+
+// Public methods {{{
 
 void
 buttonOnchange(
@@ -55,6 +83,7 @@ buttonOnchange(
     addToHandlerList(handlerList, &buttons[slot][button].onchange);
 }
 
+
 void
 buttonOnup(
     JoystickSlot slot,
@@ -67,6 +96,7 @@ buttonOnup(
     HandlerList * handlerList = initHandlerList(handler, handle);
     addToHandlerList(handlerList, &buttons[slot][button].onup);
 }
+
 
 void
 buttonOndown(
@@ -81,6 +111,7 @@ buttonOndown(
     addToHandlerList(handlerList, &buttons[slot][button].ondown);
 }
 
+
 void
 buttonsUpdate()
 {
@@ -92,6 +123,7 @@ buttonsUpdate()
         }
     }
 }
+
 
 void
 buttonsInit()
@@ -114,6 +146,13 @@ buttonsInit()
     }
 }
 
+// }}}
+
+
+
+
+// Private functions {{{
+
 static void
 initButton(Button * button, unsigned char joystick, unsigned char group, unsigned char btnNumber)
 {
@@ -125,6 +164,7 @@ initButton(Button * button, unsigned char joystick, unsigned char group, unsigne
     button->ondown = NULL;
     button->onup = NULL;
 }
+
 
 static void
 updateButton(Button * button)
@@ -143,6 +183,7 @@ updateButton(Button * button)
     }
 }
 
+
 static void
 callHandlers(HandlerList * list)
 {
@@ -152,6 +193,7 @@ callHandlers(HandlerList * list)
         list = list->next;
     }
 }
+
 
 static HandlerList *
 initHandlerList(ButtonHandler handler, void * handle)
@@ -163,6 +205,7 @@ initHandlerList(ButtonHandler handler, void * handle)
     return handlerList;
 }
 
+
 static void
 addToHandlerList(HandlerList * item, HandlerList ** destination)
 {
@@ -172,3 +215,5 @@ addToHandlerList(HandlerList * item, HandlerList ** destination)
     }
     *destination = item;
 }
+
+// }}}

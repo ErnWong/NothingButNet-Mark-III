@@ -6,6 +6,11 @@
 #include "pigeon.h"
 #include "shims.h"
 
+
+
+
+// Struct {{{
+
 struct Flap
 {
     Portal * portal;
@@ -38,6 +43,13 @@ struct Flap
     TaskHandle dropTask;
 };
 
+// }}}
+
+
+
+
+// Private functions, forward declarations {{{
+
 static void task(void*);
 static void dropTask(void*);
 static void update(Flap*);
@@ -47,6 +59,13 @@ static void initPortal(Flap*, FlapSetup);
 static void stateHandler(void * handle, char * message, char * response);
 static void openHandler(void * handle, char * message, char * response);
 static void closeHandler(void * handle, char * message, char * response);
+
+// }}}
+
+
+
+
+// Public methods {{{
 
 Flap *
 flapInit(FlapSetup setup)
@@ -86,6 +105,7 @@ flapInit(FlapSetup setup)
     return flap;
 }
 
+
 void
 flapRun(Flap * flap)
 {
@@ -98,6 +118,7 @@ flapRun(Flap * flap)
     );
 }
 
+
 void
 flapOpen(Flap * flap)
 {
@@ -107,6 +128,7 @@ flapOpen(Flap * flap)
     mutexGive(flap->mutex);
 }
 
+
 void
 flapClose(Flap * flap)
 {
@@ -115,6 +137,7 @@ flapClose(Flap * flap)
     portalUpdate(flap->portal, "state");
     mutexGive(flap->mutex);
 }
+
 
 void
 flapDrop(Flap * flap)
@@ -129,6 +152,7 @@ flapDrop(Flap * flap)
     );
 }
 
+
 void
 waitUntilFlapOpened(Flap * flap)
 {
@@ -136,12 +160,20 @@ waitUntilFlapOpened(Flap * flap)
     semaphoreTake(flap->semaphoreOpened, -1);
 }
 
+
 void
 waitUntilFlapClosed(Flap * flap)
 {
     if (flap->state == FLAP_CLOSED) return;
     semaphoreTake(flap->semaphoreClosed, -1);
 }
+
+// }}}
+
+
+
+
+// Private functions {{{
 
 static void
 task(void * flapPointer)
@@ -158,6 +190,7 @@ task(void * flapPointer)
     }
 }
 
+
 static void
 dropTask(void * flapPointer)
 {
@@ -168,6 +201,7 @@ dropTask(void * flapPointer)
     flapClose(flap);
     flap->dropTask = NULL;
 }
+
 
 static void
 update(Flap * flap)
@@ -236,6 +270,7 @@ update(Flap * flap)
     portalFlush(flap->portal);
 }
 
+
 static void
 readify(Flap * flap)
 {
@@ -247,6 +282,7 @@ readify(Flap * flap)
     }
 }
 
+
 static void
 activate(Flap * flap)
 {
@@ -257,6 +293,13 @@ activate(Flap * flap)
         taskPrioritySet(flap->task, flap->priority);
     }
 }
+
+// }}}
+
+
+
+
+// Pigeon setup {{{
 
 static void
 initPortal(Flap * flap, FlapSetup setup)
@@ -313,6 +356,7 @@ initPortal(Flap * flap, FlapSetup setup)
     portalReady(flap->portal);
 }
 
+
 static void
 stateHandler(void * handle, char * message, char * response)
 {
@@ -341,6 +385,7 @@ stateHandler(void * handle, char * message, char * response)
     else if (strcmp(message, "opening") == 0) flapOpen(flap);
 }
 
+
 static void
 openHandler(void * handle, char * message, char * response)
 {
@@ -349,6 +394,7 @@ openHandler(void * handle, char * message, char * response)
     flapOpen(flap);
 }
 
+
 static void
 closeHandler(void * handle, char * message, char * response)
 {
@@ -356,3 +402,5 @@ closeHandler(void * handle, char * message, char * response)
     Flap * flap = handle;
     flapClose(flap);
 }
+
+// }}}
