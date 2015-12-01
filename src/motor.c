@@ -1,8 +1,3 @@
-#if 0
-
-// {{{ Disabled for now
-
-
 #include <API.h>
 
 #include "motor-model.h"
@@ -12,235 +7,242 @@
 // TODO: create something like an infographic that explains the model.
 
 
-#define SMARTMOTOR_COMMAND_NO_LIMIT         ( (int)  255 )       // Command with a special value that means that the command is not limited.
-#define SMARTMOTOR_COMMAND_MAX              ( (int)  127 )       // Maximum command that can be given to a motor.
-#define SMARTMOTOR_COMMAND_MIN              ( (int) -127 )       // Minimum command that can be given to a motor.
+const int SMARTMOTOR_COMMAND_NO_LIMIT = 255;
+const int SMARTMOTOR_COMMAND_MAX = 127;
+const int SMARTMOTOR_COMMAND_MIN = -127;
+const float SMARTMOTOR_CURRENT_UNTRIP_FACTOR = 0.9f;
 
-#define SMARTMOTOR_CURRENT_UNTRIP_FACTOR	( (float) 0.9f )
-
-typedef enum SmartMotorLimitType
+typedef enum
+SmartMotorLimitType
 {
-	SMARTMOTOR_LIMIT_NONE,
-	SMARTMOTOR_LIMIT_CURRENT,
-	SMARTMOTOR_LIMIT_PTC
+    SMARTMOTOR_LIMIT_NONE,
+    SMARTMOTOR_LIMIT_CURRENT,
+    SMARTMOTOR_LIMIT_PTC
 }
 SmartMotorLimitType;
 
-typedef enum SmartMotorSensorType
+typedef enum
+SmartMotorSensorType
 {
-	SMARTMOTOR_SENSOR_NONE,
-	SMARTMOTOR_SENSOR_IME,
-	SMARTMOTOR_SENSOR_QUADRATURE,
-	SMARTMOTOR_SENSOR_ANALOG
+    SMARTMOTOR_SENSOR_NONE,
+    SMARTMOTOR_SENSOR_IME,
+    SMARTMOTOR_SENSOR_QUADRATURE,
+    SMARTMOTOR_SENSOR_ANALOG
 }
 SmartMotorSensorType;
 
-typedef struct SmartMotor
+typedef struct
+SmartMotor
 {
-	int command;
-	unsigned long microTime;
-	float timeChange;
-	MotorModel model;
-	SmartController *bank;
-	Ptc ptc;
-	float temperature;
-	float targetCurrent;
-	float safeCurrent;
-	float limitCurrent;
-	int commandLimit;
-	unsigned char channel;
-	float rpm;
+    int command;
+    unsigned long microTime;
+    float timeChange;
+    MotorModel model;
+    SmartController *bank;
+    Ptc ptc;
+    float temperature;
+    float targetCurrent;
+    float safeCurrent;
+    float limitCurrent;
+    int commandLimit;
+    unsigned char channel;
+    float rpm;
 
-	bool limitTripped;
+    bool limitTripped;
 
-	SmartMotorLimitType limitType;
+    SmartMotorLimitType limitType;
 
-	SmartMotorSensorType sensorType;
-	void *sensor;
+    SmartMotorSensorType sensorType;
+    void *sensor;
 }
 SmartMotor;
 
-typedef struct SmartController
+typedef struct
+SmartController
 {
-	Ptc ptc;
+    Ptc ptc;
 }
 SmartController;
 
-void update(SmartMotor *m)
+void
+update(SmartMotor * m)
 {
-	float batteryVoltage;
-	measure(m, &batteryVoltage);
+    float batteryVoltage;
+    measure(m, &batteryVoltage);
 
-	motorModelUpdate(&m->model, m->command, m->rpm, batteryVoltage, m->timeChange);
-	ptcUpdate(&m->ptc, m->model.current, m->timeChange);
+    motorModelUpdate(&m->model, m->command, m->rpm, batteryVoltage, m->timeChange);
+    ptcUpdate(&m->ptc, m->model.current, m->timeChange);
 
-	switch (m->limitType)
-	{
-	case SMARTMOTOR_LIMIT_PTC:
-		monitorPtc(m, batteryVoltage);
-		break;
-	case SMARTMOTOR_LIMIT_CURRENT:
-		monitorCurrent(m, batteryVoltage);
-		break;
-	}
+    switch (m->limitType)
+    {
+    case SMARTMOTOR_LIMIT_PTC:
+        monitorPtc(m, batteryVoltage);
+        break;
+    case SMARTMOTOR_LIMIT_CURRENT:
+        monitorCurrent(m, batteryVoltage);
+        break;
+    }
 }
 
-void measure(SmartMotor *m, float *batteryVoltage)
+void
+measure(SmartMotor * m, float * batteryVoltage)
 {
-	m->timeChange = timeUpdate(&m->microTime);
+    m->timeChange = timeUpdate(&m->microTime);
 
-	*batteryVoltage = powerLevelMain() / 1000;
-	
-	m->command = motorGet(m->channel);
+    *batteryVoltage = powerLevelMain() / 1000;
 
-	measureRpm(m);
+    m->command = motorGet(m->channel);
+
+    measureRpm(m);
 }
 
-void measureRpm(SmartMotor *m)
+void
+measureRpm(SmartMotor * m)
 {
-	switch (m->sensorType)
-	{
+    switch (m->sensorType)
+    {
 
-	}
+    }
 }
 
-void monitorCurrent(SmartMotor *m, float batteryVoltage)
+void
+monitorCurrent(SmartMotor * m, float batteryVoltage)
 {
-	m->targetCurrent = m->limitCurrent;
+    m->targetCurrent = m->limitCurrent;
 
-	checkCurrent(m);
+    checkCurrent(m);
 
-	if (m->limitTripped)
-	{
-		m->commandLimit = getCommandSafeLimit(m, batteryVoltage);
-	}
-	else
-	{
-		m->commandLimit = SMARTMOTOR_COMMAND_NO_LIMIT;
-	}
+    if (m->limitTripped)
+    {
+        m->commandLimit = getCommandSafeLimit(m, batteryVoltage);
+    }
+    else
+    {
+        m->commandLimit = SMARTMOTOR_COMMAND_NO_LIMIT;
+    }
 }
 
-void checkCurrent(SmartMotor *m)
+void
+checkCurrent(SmartMotor * m)
 {
-	if (!m->limitTripped)
-	{
-		if (abs(m->model.currentFiltered) > m->targetCurrent)
-		{
-			m->limitTripped = true;
-		}
-	}
-	else
-	{
-		if (abs(m->model.currentFiltered) < m->targetCurrent * SMARTMOTOR_CURRENT_UNTRIP_FACTOR)
-		{
-			m->limitTripped = false;
-		}
-	}
+    if (!m->limitTripped)
+    {
+        if (abs(m->model.currentFiltered) > m->targetCurrent)
+        {
+            m->limitTripped = true;
+        }
+    }
+    else
+    {
+        if (abs(m->model.currentFiltered) < m->targetCurrent * SMARTMOTOR_CURRENT_UNTRIP_FACTOR)
+        {
+            m->limitTripped = false;
+        }
+    }
 }
 
-void monitorPtc(SmartMotor *m, float batteryVoltage)
+void
+monitorPtc(SmartMotor * m, float batteryVoltage)
 {
 
-	if (m->bank && m->bank->ptc.tripped)
-	{
-		return;
-	}
+    if (m->bank && m->bank->ptc.tripped)
+    {
+        return;
+    }
 
-	if (m->ptc.tripped)
-	{
-		m->targetCurrent = m->safeCurrent; // TODO: is this constant?
-		m->commandLimit = getCommandSafeLimit(m, batteryVoltage);
-	}
-	else
-	{
-		// Remove the limit
-		m->commandLimit = SMARTMOTOR_COMMAND_NO_LIMIT;
-	}
-}
-
-
-int getCommandSafeLimit(SmartMotor *m, float batteryVoltage)
-{
-	int command = motorGet(m->channel);
-
-	if (m->targetCurrent == 0)
-	{
-		return 0;
-	}
-
-	// Command polarity must match RPM polarity.
-	if (command >= 0)
-	{
-		if (m->rpm >= 0)
-		{
-			command = getCommandSafeLimitForward(m, batteryVoltage);
-		}
-		else
-		{
-			command = SMARTMOTOR_COMMAND_MAX;
-		}
-	}
-	else
-	{
-		if (m->rpm <= 0)
-		{
-			command = getCommandSafeLimitBackward(m, batteryVoltage);
-		}
-		else
-		{
-			command = SMARTMOTOR_COMMAND_MIN;
-		}
-	}
-	
-	// Ports 2 through to 9 behave a little differently.
-	if (2 <= m->channel <= 9)
-	{
-		return (command * 90) / 128;
-	}
-	return command;
+    if (m->ptc.tripped)
+    {
+        m->targetCurrent = m->safeCurrent; // TODO: is this constant?
+        m->commandLimit = getCommandSafeLimit(m, batteryVoltage);
+    }
+    else
+    {
+        // Remove the limit
+        m->commandLimit = SMARTMOTOR_COMMAND_NO_LIMIT;
+    }
 }
 
 
-int getCommandSafeLimitForward(SmartMotor *m, float batteryVoltage)
+int
+getCommandSafeLimit(SmartMotor * m, float batteryVoltage)
 {
-	float resistance = m->model.resistance + MOTOR_SYSTEM_RESISTANCE;
-	float voltageResistive = m->targetCurrent * resistance;
+    int command = motorGet(m->channel);
 
-	float voltageDutyOn = m->model.backEmf + voltageResistive + MOTOR_DIODE_VOLTAGE;
-	float voltageAvailable = batteryVoltage + MOTOR_DIODE_VOLTAGE;
+    if (m->targetCurrent == 0)
+    {
+        return 0;
+    }
 
-	float dutyOn = voltageDutyOn / voltageAvailable;
-	int command = SMARTMOTOR_COMMAND_MAX * dutyOn;
+    // Command polarity must match RPM polarity.
+    if (command >= 0)
+    {
+        if (m->rpm >= 0)
+        {
+            command = getCommandSafeLimitForward(m, batteryVoltage);
+        }
+        else
+        {
+            command = SMARTMOTOR_COMMAND_MAX;
+        }
+    }
+    else
+    {
+        if (m->rpm <= 0)
+        {
+            command = getCommandSafeLimitBackward(m, batteryVoltage);
+        }
+        else
+        {
+            command = SMARTMOTOR_COMMAND_MIN;
+        }
+    }
 
-	// Clip
-	if (command > SMARTMOTOR_COMMAND_MAX)
-	{
-		return SMARTMOTOR_COMMAND_MAX;
-	}
-	return command;
+    // Ports 2 through to 9 behave a little differently.
+    if (2 <= m->channel <= 9)
+    {
+        return (command * 90) / 128;
+    }
+    return command;
 }
 
 
-int getCommandSafeLimitBackward(SmartMotor *m, float batteryVoltage)
+int
+getCommandSafeLimitForward(SmartMotor * m, float batteryVoltage)
 {
-	float resistance = m->model.resistance + MOTOR_SYSTEM_RESISTANCE;
-	float voltageResistive = m->targetCurrent * resistance;
+    float resistance = m->model.resistance + MOTOR_SYSTEM_RESISTANCE;
+    float voltageResistive = m->targetCurrent * resistance;
 
-	float voltageDutyOn = m->model.backEmf - voltageResistive - MOTOR_DIODE_VOLTAGE;
-	float voltageAvailable = batteryVoltage + MOTOR_DIODE_VOLTAGE;
+    float voltageDutyOn = m->model.backEmf + voltageResistive + MOTOR_DIODE_VOLTAGE;
+    float voltageAvailable = batteryVoltage + MOTOR_DIODE_VOLTAGE;
 
-	float dutyOn = voltageDutyOn / voltageAvailable;
-	int command = SMARTMOTOR_COMMAND_MAX * dutyOn;
+    float dutyOn = voltageDutyOn / voltageAvailable;
+    int command = SMARTMOTOR_COMMAND_MAX * dutyOn;
 
-	// Clip
-	if (command < SMARTMOTOR_COMMAND_MIN)
-	{
-		return SMARTMOTOR_COMMAND_MIN;
-	}
-	return command;
+    // Clip
+    if (command > SMARTMOTOR_COMMAND_MAX)
+    {
+        return SMARTMOTOR_COMMAND_MAX;
+    }
+    return command;
 }
 
 
-// }}}
+int
+getCommandSafeLimitBackward(SmartMotor * m, float batteryVoltage)
+{
+    float resistance = m->model.resistance + MOTOR_SYSTEM_RESISTANCE;
+    float voltageResistive = m->targetCurrent * resistance;
 
-#endif
+    float voltageDutyOn = m->model.backEmf - voltageResistive - MOTOR_DIODE_VOLTAGE;
+    float voltageAvailable = batteryVoltage + MOTOR_DIODE_VOLTAGE;
+
+    float dutyOn = voltageDutyOn / voltageAvailable;
+    int command = SMARTMOTOR_COMMAND_MAX * dutyOn;
+
+    // Clip
+    if (command < SMARTMOTOR_COMMAND_MIN)
+    {
+        return SMARTMOTOR_COMMAND_MIN;
+    }
+    return command;
+}

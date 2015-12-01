@@ -1,4 +1,4 @@
-// 
+//
 // PTC temperature and tripping model.
 //
 // This is part of a rewrite of James Pearman (aka Jpearman)'s Smart Motor Library,
@@ -21,52 +21,78 @@ extern "C" {
 #endif
 
 
+extern const float PTC_TEMPERATURE_AMBIENT;
+extern const float PTC_TEMPERATURE_TRIP;
+extern const float PTC_TEMPERATURE_UNTRIP;
 
-#define PTC_TEMPERATURE_AMBIENT ( (float)  20.0f )      // Temperature of the surroundings (in deg C).
-#define PTC_TEMPERATURE_TRIP    ( (float) 100.0f )      // Temperature over which a PTC will trip (in deg C).
-#define PTC_TEMPERATURE_UNTRIP  ( (float)  90.0f )      // Temperature under which a tripped PTC will untrip (in deg C).
+extern const float PTC_TEMPERATURE_REFERENCE;
 
+extern const float PTC_CURRENT_HOLD_CORTEX;
+extern const float PTC_TIME_TRIP_CORTEX;
+extern const float PTC_K_TAU_CORTEX;
+extern const float PTC_CONSTANT_TAU_CORTEX;
+extern const float PTC_CONSTANT_1_CORTEX;
+extern const float PTC_CONSTANT_2_CORTEX;
+
+extern const float PTC_CURRENT_HOLD_393;
+extern const float PTC_TIME_TRIP_393;
+extern const float PTC_K_TAU_393;
+extern const float PTC_CONSTANT_TAU_393;
+extern const float PTC_CONSTANT_1_393;
+extern const float PTC_CONSTANT_2_393;
+
+extern const float PTC_CURRENT_HOLD_269;
+extern const float PTC_TIME_TRIP_269;
+extern const float PTC_K_TAU_269;
+extern const float PTC_CONSTANT_TAU_269;
+extern const float PTC_CONSTANT_1_269;
+extern const float PTC_CONSTANT_2_269;
+
+extern const float PTC_CONSTANT_1_3WIRE;
+extern const float PTC_CONSTANT_2_3WIRE;
 
 // Calculates the tau constant, parameter of the PTC.
-#define PTC_CONSTANT_TAU(kTau, tTrip)       ((kTau) * (tTrip) * 5.0 * 5.0)
+#define PTC_CONSTANT_TAU(kTau, tTrip) ((kTau) * (tTrip) * 5.0 * 5.0)
 
-// Calculates the constant1 parameter of the PTC.
-#define PTC_CONSTANT_1(tTrip, tRef, iHold)  (((tTrip) - (tRef)) / ((iHold) * (iHold)))
+// Calculates the constant-1 parameter of the PTC.
+#define PTC_CONSTANT_1(tTrip, iHold) (((tTrip) - PTC_TEMPERATURE_REFERENCE) / ((iHold) * (iHold)))
 
-// Calculates the constant2 parameter of the PTC.
-#define PTC_CONSTANT_2(tau)                 (1.0f / (tau))
-
-
+// Calculates the constant-2 parameter of the PTC.
+#define PTC_CONSTANT_2(tau) (1.0f / (tau))
 
 
 //
 // PTC temperature and tripping model.
 //
-typedef struct Ptc
+typedef struct
+Ptc
 {
-	const float constant1;      // Reciprocal of the dissipation constant, 1 / k = (T_c - T_0) / (I_hold)^2 .
-	const float constant2;      // Dissipation constant per specific heat, 1 / tau, where tau = 0.5 * (I_trip / I_0)^2 * t_trip .
-	float ambient;              // Temperature of the surroundings (in deg C).
-	float temperature;          // PTC temperature (in deg C)
-	bool tripped;               // Whether the PTC had tripped.
+    float constant1;
+    float constant2;
+    float ambient;
+    float temperature;
+    bool tripped;
 }
 Ptc;
 
 
-typedef struct PtcSetup
+typedef struct
+PtcSetup
 {
-	float ambient;              // Temperature of the surroundings. (in deg C);
-	float constant1;            // Reciprocal of the dissipation constant, 1 / k = (T_c - T_0) / (I_hold)^2 .
-	float constant2;            // Dissipation constant per specific heat, 1 / tau, where tau = 0.5 * (I_tri / I_0)^2 * t_trip .
+    float ambient;
+    float constant1;
+    float constant2;
 }
 PtcSetup;
 
 
-void ptcInit(Ptc *ptc, PtcSetup setup);
+void
+ptcInit(Ptc * ptc, PtcSetup setup);
 
 
 // Also returns the trip status.
-bool ptcUpdate(Ptc *ptc, float current, float timeChange);
+bool
+ptcUpdate(Ptc * ptc, float current, float timeChange);
 
 
 
