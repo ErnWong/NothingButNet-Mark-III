@@ -81,6 +81,12 @@ void
 flywheelSet(Flywheel * flywheel, float rpm);
 
 void
+flywheelMutexTake(Flywheel * flywheel, unsigned long blockTime);
+
+void
+flywheelMutexGive(Flywheel * flywheel);
+
+void
 waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime);
 
 // }}}

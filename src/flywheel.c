@@ -150,10 +150,12 @@ flywheelReset(Flywheel * flywheel)
     flywheel->system.error = 0.0f;
     flywheel->system.action = 0.0f;
 
+    portalMutexTake(flywheel->portal, -1);
     portalUpdate(flywheel->portal, "measured");
     portalUpdate(flywheel->portal, "derivative");
     portalUpdate(flywheel->portal, "error");
     portalUpdate(flywheel->portal, "action");
+    portalMutexGive(flywheel->portal);
 
     flywheel->controlReset(flywheel->control);
     flywheel->encoderReset(flywheel->encoder);
@@ -163,11 +165,11 @@ flywheelReset(Flywheel * flywheel)
 void
 flywheelSet(Flywheel * flywheel, float rpm)
 {
-    mutexTake(flywheel->mutex, -1);
     flywheel->system.target = rpm;
-    mutexGive(flywheel->mutex);
 
+    portalMutexTake(flywheel->portal, -1);
     portalUpdate(flywheel->portal, "target");
+    portalMutexGive(flywheel->portal);
 
     if (flywheel->ready)
     {
@@ -188,6 +190,18 @@ flywheelRun(Flywheel * flywheel)
             flywheel->priorityActive
         );
     }
+}
+
+void
+flywheelMutexTake(Flywheel * flywheel, unsigned long blockTime)
+{
+    mutexTake(flywheel->mutex, blockTime);
+}
+
+void
+flywheelMutexGive(Flywheel * flywheel)
+{
+    mutexGive(flywheel->mutex);
 }
 
 void

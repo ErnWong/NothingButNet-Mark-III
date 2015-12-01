@@ -43,14 +43,18 @@ static void
 turnOnFlywheel(void * handle)
 {
     UNUSED(handle);
+    flywheelMutexTake(fwAbove, -1);
     flywheelSet(fwAbove, 800);
+    flywheelMutexGive(fwAbove);
 }
 
 static void
 turnOffFlywheel(void * handle)
 {
     UNUSED(handle);
+    flywheelMutexTake(fwAbove, -1);
     flywheelSet(fwAbove, 0);
+    flywheelMutexGive(fwAbove);
 }
 
 static void
