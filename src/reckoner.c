@@ -104,12 +104,14 @@ void
 reckonerUpdate(Reckoner * r)
 {
     mutexTake(r->mutex, -1);
+    portalMutexTake(r->portal, -1);
     updateReadings(r);
     updateWheels(r);
     updateVelocity(r);
     updateHeading(r);
     updatePosition(r);
     updatePortal(r);
+    portalMutexGive(r->portal);
     mutexGive(r->mutex);
 }
 

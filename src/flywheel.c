@@ -239,10 +239,12 @@ static void
 update(Flywheel * flywheel)
 {
     mutexTake(flywheel->mutex, -1);
+    portalMutexTake(flywheel->portal, -1);
     updateSystem(flywheel);
     updateControl(flywheel);
     updateMotor(flywheel);
     portalFlush(flywheel->portal);
+    portalMutexGive(flywheel->portal);
     mutexGive(flywheel->mutex);
 }
 

@@ -150,7 +150,9 @@ task(void * flapPointer)
     while (true)
     {
         mutexTake(flap->mutex, -1);
+        portalMutexTake(flap->portal, -1);
         update(flap);
+        portalMutexGive(flap->portal);
         mutexGive(flap->mutex);
         delay(flap->frameDelay);
     }
