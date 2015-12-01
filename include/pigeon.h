@@ -86,6 +86,12 @@ portalEnable(Portal*);
 void
 portalDisable(Portal*);
 
+void
+portalMutexTake(Portal*, unsigned long blockTime);
+
+void
+portalMutexGive(Portal*);
+
 Pigeon *
 pigeonInit(PigeonIn, PigeonOut, PigeonMillis);
 

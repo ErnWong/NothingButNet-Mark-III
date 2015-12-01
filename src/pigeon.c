@@ -80,6 +80,7 @@ struct Pigeon
     PigeonOut puts;
     PigeonMillis millis;
     TaskHandle task;
+    Mutex mutex;
     bool ready;
 };
 
@@ -89,6 +90,8 @@ struct Pigeon
 
 // Private functions - forward declarations {{{
 
+static void task(void*);
+static void processInput(Pigeon*, char * portalId, char * entryKey, char * message);
 static void checkReady(Pigeon*);
 static bool isPortalBranchReady(Portal*);
 static void writeMessage(
@@ -124,6 +127,8 @@ pigeonInit(PigeonIn getter, PigeonOut putter, PigeonMillis clock)
     pigeon->task = NULL;
     pigeon->topPortal = NULL;
     pigeon->pigeonPortal = NULL;
+
+    pigeon->mutex = mutexCreate();
 
     pigeon->ready = false;
 
@@ -400,11 +405,11 @@ portalDisable(Portal * portal)
     }
 }
 
-
 void
 portalGetStreamKeys(Portal * portal, char * destination)
 {
     if (portal == NULL) return;
+
     PortalEntryList * list = portal->streamList;
 
     destination[0] = '\0';
@@ -462,6 +467,19 @@ portalSetStreamKeys(Portal * portal, char * sequence)
     portal->streamList = initial.next;
 
     return true;
+}
+
+
+void
+portalMutexTake(Portal * portal, unsigned long blockTime)
+{
+    mutexTake(portal->pigeon->mutex, blockTime);
+}
+
+void
+portalMutexGive(Portal * portal)
+{
+    mutexGive(portal->pigeon->mutex);
 }
 
 
@@ -590,43 +608,51 @@ task(void * pigeonData)
         portalId = trimSpaces(portalId);
         entryKey = trimSpaces(entryKey);
 
-        Portal ** portalPos = findPortal(portalId, &pigeon->topPortal);
-        if (*portalPos == NULL)
-        {
-            char message[80];
-            snprintf(message, 80, "cannot find portal with id '%s'", portalId);
-            logError(pigeon, message);
-            continue;
-        }
-        Portal * portal = *portalPos;
-
-        PortalEntry ** entryPos = findEntry(entryKey, &portal->topEntry);
-        if (*entryPos == NULL)
-        {
-            char message[80];
-            snprintf(message, 80, "cannot find entry with key '%s'", entryKey);
-            logError(pigeon, message);
-            continue;
-        }
-        PortalEntry * entry = *entryPos;
-
-        if (entry->handler == NULL) continue;
-        char response[LINESIZE] = {0};
-        entry->handler(entry->handle, message, response);
-
-        if (!entry->manual) portalUpdate(portal, entry->key);
-
-        if (response[0] == '\0') continue;
-
-        writeMessage(
-            pigeon,
-            portal->id,
-            entry->key,
-            response
-        );
+        mutexTake(pigeon->mutex, -1);
+        processInput(pigeon, portalId, entryKey, message);
+        mutexGive(pigeon->mutex);
 
         delay(40);
     }
+}
+
+static void
+processInput(Pigeon * pigeon, char * portalId, char * entryKey, char * message)
+{
+    Portal ** portalPos = findPortal(portalId, &pigeon->topPortal);
+    if (*portalPos == NULL)
+    {
+        char message[80];
+        snprintf(message, 80, "cannot find portal with id '%s'", portalId);
+        logError(pigeon, message);
+        return;
+    }
+    Portal * portal = *portalPos;
+
+    PortalEntry ** entryPos = findEntry(entryKey, &portal->topEntry);
+    if (*entryPos == NULL)
+    {
+        char message[80];
+        snprintf(message, 80, "cannot find entry with key '%s'", entryKey);
+        logError(pigeon, message);
+        return;
+    }
+    PortalEntry * entry = *entryPos;
+
+    if (entry->handler == NULL) return;
+    char response[LINESIZE] = {0};
+    entry->handler(entry->handle, message, response);
+
+    if (!entry->manual) portalUpdate(portal, entry->key);
+
+    if (response[0] == '\0') return;
+
+    writeMessage(
+        pigeon,
+        portal->id,
+        entry->key,
+        response
+    );
 }
 
 static void
