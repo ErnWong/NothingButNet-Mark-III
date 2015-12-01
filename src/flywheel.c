@@ -260,11 +260,14 @@ updateSystem(Flywheel * flywheel)
     // Low-pass filter
     float measureChange = (rpm - flywheel->system.measured);
     measureChange *= dt / flywheel->smoothing;
+    float derivative = measureChange / dt;
+    float derivativeChange = (derivative - flywheel->system.derivative);
+    derivativeChange *= dt / flywheel->smoothing;
 
     // Update
     flywheel->measuredRaw = rpm;
     flywheel->system.measured += measureChange;
-    flywheel->system.derivative = measureChange / dt;
+    flywheel->system.derivative += derivativeChange;
 
     // Calculate error
     float error = flywheel->system.measured - flywheel->system.target;
