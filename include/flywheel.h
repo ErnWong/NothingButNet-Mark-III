@@ -75,19 +75,19 @@ Flywheel *
 flywheelInit(FlywheelSetup setup);
 
 void
-flywheelRun(Flywheel * flywheel);
+flywheelRun(Flywheel*);
 
 void
-flywheelSet(Flywheel * flywheel, float rpm);
+flywheelSet(Flywheel*, float rpm);
 
 void
-flywheelMutexTake(Flywheel * flywheel, unsigned long blockTime);
+flywheelMutexTake(Flywheel*, const unsigned long blockTime);
 
 void
-flywheelMutexGive(Flywheel * flywheel);
+flywheelMutexGive(Flywheel*);
 
 void
-waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime);
+waitUntilFlywheelReady(Flywheel*, const unsigned long blockTime);
 
 // }}}
 

@@ -9,10 +9,14 @@
 #include "shims.h"
 
 
+
+
 #define UNUSED(x) (void)(x)
 
 
-// Typedefs {{{
+
+
+// Struct {{{
 
 struct Flywheel
 {
@@ -177,6 +181,7 @@ flywheelSet(Flywheel * flywheel, float rpm)
     }
 }
 
+
 void
 flywheelRun(Flywheel * flywheel)
 {
@@ -192,17 +197,20 @@ flywheelRun(Flywheel * flywheel)
     }
 }
 
+
 void
 flywheelMutexTake(Flywheel * flywheel, unsigned long blockTime)
 {
     mutexTake(flywheel->mutex, blockTime);
 }
 
+
 void
 flywheelMutexGive(Flywheel * flywheel)
 {
     mutexGive(flywheel->mutex);
 }
+
 
 void
 waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime)
@@ -387,8 +395,8 @@ readify(Flywheel * flywheel)
     semaphoreGive(flywheel->readySemaphore);
 }
 
-
 // }}}
+
 
 
 
@@ -518,6 +526,7 @@ setupPortal(Flywheel * flywheel, FlywheelSetup setup)
     };
     portalAddBatch(flywheel->portal, setups);
 }
+
 
 static void
 readyHandler(void * handle, char * message, char * response)

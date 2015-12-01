@@ -1,11 +1,16 @@
 #include "drive.h"
+
 #include "shims.h"
 #include "drive-style.h"
 
 
 
+
+// Structs {{{
+
 struct DriveControl;
 typedef struct DriveControl DriveControl;
+
 
 struct Drive
 {
@@ -22,11 +27,21 @@ struct DriveControl
     DriveControl * previous;
 };
 
+// }}}
 
+
+
+
+// Private functions, forward declaration {{{
 
 static void update(Drive*);
 
+// }}}
 
+
+
+
+// Public methods {{{
 
 Drive *
 driveInit(DriveSetup setup)
@@ -63,6 +78,7 @@ driveAdd(Drive * drive, DriveStyle style)
     }
 }
 
+
 void
 driveAddBatch(Drive * drive, DriveStyle * style)
 {
@@ -73,11 +89,13 @@ driveAddBatch(Drive * drive, DriveStyle * style)
     }
 }
 
+
 void
 driveNext(Drive * drive)
 {
     drive->control = drive->control->next;
 }
+
 
 void
 drivePrevious(Drive * drive)
@@ -85,14 +103,24 @@ drivePrevious(Drive * drive)
     drive->control = drive->control->previous;
 }
 
+
 void
 driveUpdate(Drive * drive)
 {
     update(drive);
 }
 
+// }}}
+
+
+
+
+// Private functions {{{
+
 static void
 update(Drive * drive)
 {
     drive->control->update(drive->motors, drive->motorSet);
 }
+
+// }}}

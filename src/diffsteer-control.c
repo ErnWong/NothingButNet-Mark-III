@@ -8,6 +8,11 @@
 #include "pigeon.h"
 #include "utils.h"
 
+
+
+
+// Struct {{{
+
 struct Diffsteer
 {
     Portal * portal;
@@ -30,10 +35,24 @@ struct Diffsteer
     Mutex mutex;
 };
 
+// }}}
+
+
+
+
+// Private functions, forward declarations {{{
+
 static void updateRotate(Diffsteer*);
 static void updateMove(Diffsteer*);
 static void setupPortal(Diffsteer*, DiffsteerSetup);
 static void modeHandler(void * handle, char * message, char * response);
+
+// }}}
+
+
+
+
+// Public methods {{{
 
 Diffsteer *
 diffsteerInit(DiffsteerSetup setup)
@@ -62,6 +81,7 @@ diffsteerInit(DiffsteerSetup setup)
     return d;
 }
 
+
 void
 diffsteerRotate(Diffsteer * d, float heading)
 {
@@ -71,6 +91,7 @@ diffsteerRotate(Diffsteer * d, float heading)
     d->targetHeading = heading;
     mutexGive(d->mutex);
 }
+
 
 void
 diffsteerMove(Diffsteer * d, float x, float y)
@@ -82,6 +103,7 @@ diffsteerMove(Diffsteer * d, float x, float y)
     mutexGive(d->mutex);
 }
 
+
 void
 diffsteerStop(Diffsteer * d)
 {
@@ -89,6 +111,7 @@ diffsteerStop(Diffsteer * d)
     d->mode = DIFFSTEER_IDLE;
     mutexGive(d->mutex);
 }
+
 
 void
 diffsteerUpdate(Diffsteer * d)
@@ -109,6 +132,13 @@ diffsteerUpdate(Diffsteer * d)
     mutexGive(d->mutex);
 }
 
+// }}}
+
+
+
+
+// Private functions {{{
+
 static void
 updateRotate(Diffsteer * d)
 {
@@ -118,6 +148,7 @@ updateRotate(Diffsteer * d)
     d->motorLeftSet(d->motorLeft, -(int)command);
     d->motorRightSet(d->motorRight, (int)command);
 }
+
 
 static void
 updateMove(Diffsteer * d)
@@ -158,6 +189,13 @@ updateMove(Diffsteer * d)
     d->motorLeftSet(d->motorLeft, (int)commandLeft);
     d->motorRightSet(d->motorRight, (int)commandRight);
 }
+
+// }}}
+
+
+
+
+// Pigeon setup {{{
 
 static void
 setupPortal(Diffsteer * d, DiffsteerSetup setup)
@@ -235,3 +273,5 @@ modeHandler(void * handle, char * message, char * response)
     }
     else if (strcmp(message, "idle") == 0) diffsteerStop(d);
 }
+
+// }}}

@@ -6,8 +6,10 @@
 #include "shims.h"
 #include "utils.h"
 
-struct Reckoner;
-typedef struct Reckoner Reckoner;
+
+
+
+// Struct {{{
 
 struct Reckoner
 {
@@ -42,6 +44,13 @@ struct Reckoner
     Mutex mutex;
 };
 
+// }}}
+
+
+
+
+// Private functions, forward declarations {{{
+
 static void updateReadings(Reckoner*);
 static void updateWheels(Reckoner*);
 static void updateVelocity(Reckoner*);
@@ -49,6 +58,13 @@ static void updateHeading(Reckoner*);
 static void updatePosition(Reckoner*);
 static void updatePortal(Reckoner*);
 static void setupPortal(Reckoner*, ReckonerSetup);
+
+// }}}
+
+
+
+
+// Public methods {{{
 
 Reckoner *
 reckonerInit(ReckonerSetup setup)
@@ -94,11 +110,13 @@ reckonerInit(ReckonerSetup setup)
     return r;
 }
 
+
 ReckonerState *
 reckonerGetState(Reckoner * r)
 {
     return &r->state;
 }
+
 
 void
 reckonerUpdate(Reckoner * r)
@@ -115,6 +133,13 @@ reckonerUpdate(Reckoner * r)
     mutexGive(r->mutex);
 }
 
+// }}}
+
+
+
+
+// Private functions {{{
+
 static void
 updateReadings(Reckoner * r)
 {
@@ -122,6 +147,8 @@ updateReadings(Reckoner * r)
     r->readingLeft = r->encoderLeftGet(r->encoderLeft);
     r->readingRight = r->encoderRightGet(r->encoderRight);
 }
+
+
 static void
 updateWheels(Reckoner * r)
 {
@@ -139,6 +166,7 @@ updateWheels(Reckoner * r)
     r->left = left;
     r->right = right;
 }
+
 
 static void
 updateVelocity(Reckoner * r)
@@ -165,6 +193,7 @@ updateVelocity(Reckoner * r)
     r->state.velocity = 0.5f * (r->velocityLeft + r->velocityRight);
 }
 
+
 static void
 updateHeading(Reckoner * r)
 {
@@ -172,12 +201,14 @@ updateHeading(Reckoner * r)
     r->state.heading = fmodf(r->state.heading + PI, TAU) - PI;
 }
 
+
 static void
 updatePosition(Reckoner * r)
 {
     r->state.x += r->timeChange * r->state.velocity * cosf(r->state.heading);
     r->state.y += r->timeChange * r->state.velocity * sinf(r->state.heading);
 }
+
 
 static void
 updatePortal(Reckoner * r)
@@ -197,6 +228,13 @@ updatePortal(Reckoner * r)
     portalUpdate(r->portal, "y");
     portalFlush(r->portal);
 }
+
+// }}}
+
+
+
+
+// Pigeon setup {{{
 
 static void
 setupPortal(Reckoner * r, ReckonerSetup setup)
@@ -322,3 +360,5 @@ setupPortal(Reckoner * r, ReckonerSetup setup)
     portalSetStreamKeys(r->portal, streamOrder);
     portalReady(r->portal);
 }
+
+// }}}

@@ -9,21 +9,29 @@
 #include "utils.h"
 
 
-// Private, for clarity
+
+
+// Private macros, for clarity {{{
 
 #define LINESIZE PIGEON_LINESIZE
 #define ALIGNSIZE PIGEON_ALIGNSIZE
 #define UNUSED(x) (void)(x)
 
+// }}}
 
 
-// Private structs/typedefs - foward Declarations
+
+
+// Private structs/typedefs, foward Declarations {{{
 
 struct PortalEntry;
 typedef struct PortalEntry PortalEntry;
 
 struct PortalEntryList;
 typedef struct PortalEntryList PortalEntryList;
+
+// }}}
+
 
 
 
@@ -88,7 +96,8 @@ struct Pigeon
 
 
 
-// Private functions - forward declarations {{{
+
+// Private functions, forward declarations {{{
 
 static void task(void*);
 static void processInput(Pigeon*, char * portalId, char * entryKey, char * message);
@@ -110,6 +119,7 @@ static void getKeysHandler(void * handle, char * message, char * response);
 static void logError(Pigeon*, char * message);
 
 // }}}
+
 
 
 
@@ -165,6 +175,7 @@ pigeonCreatePortal(Pigeon * pigeon, const char * id)
     return portal;
 }
 
+
 void
 pigeonReady(Pigeon * pigeon)
 {
@@ -174,6 +185,7 @@ pigeonReady(Pigeon * pigeon)
 }
 
 // }}}
+
 
 
 
@@ -405,6 +417,7 @@ portalDisable(Portal * portal)
     }
 }
 
+
 void
 portalGetStreamKeys(Portal * portal, char * destination)
 {
@@ -475,6 +488,7 @@ portalMutexTake(Portal * portal, unsigned long blockTime)
 {
     mutexTake(portal->pigeon->mutex, blockTime);
 }
+
 
 void
 portalMutexGive(Portal * portal)
@@ -583,6 +597,7 @@ portalStreamKeyHandler(void * handle, char * msg, char * res)
 
 
 
+
 // Private methods {{{
 
 static void
@@ -615,6 +630,7 @@ task(void * pigeonData)
         delay(40);
     }
 }
+
 
 static void
 processInput(Pigeon * pigeon, char * portalId, char * entryKey, char * message)
@@ -655,6 +671,7 @@ processInput(Pigeon * pigeon, char * portalId, char * entryKey, char * message)
     );
 }
 
+
 static void
 checkReady(Pigeon * pigeon)
 {
@@ -670,6 +687,7 @@ checkReady(Pigeon * pigeon)
         );
     }
 }
+
 
 static bool
 isPortalBranchReady(Portal * portal)
@@ -727,6 +745,7 @@ writeMessage(
     pigeon->puts(str);
 }
 
+
 static Portal **
 findPortal(const char * id, Portal ** topPortal)
 {
@@ -749,6 +768,7 @@ findPortal(const char * id, Portal ** topPortal)
     }
     return visiting;
 }
+
 
 static PortalEntry **
 findEntry(const char * key, PortalEntry ** topEntry)
@@ -773,6 +793,7 @@ findEntry(const char * key, PortalEntry ** topEntry)
     return visiting;
 }
 
+
 static void
 deleteEntryList(PortalEntryList * list)
 {
@@ -783,6 +804,20 @@ deleteEntryList(PortalEntryList * list)
         free(old);
     }
 }
+
+
+static void
+logError(Pigeon * pigeon, char * message)
+{
+    portalSet(pigeon->pigeonPortal, "error", message);
+}
+
+// }}}
+
+
+
+
+// Pigeon setup {{{
 
 static void
 setupPigeonPortal(Pigeon * pigeon)
@@ -824,6 +859,7 @@ setupPigeonPortal(Pigeon * pigeon)
     portalReady(pigeon->pigeonPortal);
 }
 
+
 static void
 enablePortalHandler(void * handle, char * message, char * response)
 {
@@ -839,6 +875,7 @@ enablePortalHandler(void * handle, char * message, char * response)
         id = strtok(NULL, "");
     }
 }
+
 
 static void
 disablePortalHandler(void * handle, char * message, char * response)
@@ -856,6 +893,7 @@ disablePortalHandler(void * handle, char * message, char * response)
     }
 }
 
+
 static void
 getKeysHandler(void * handle, char * message, char * response)
 {
@@ -865,12 +903,6 @@ getKeysHandler(void * handle, char * message, char * response)
     Pigeon * pigeon = handle;
     Portal * portal = *findPortal(message, &pigeon->topPortal);
     portalGetStreamKeys(portal, response);
-}
-
-static void
-logError(Pigeon * pigeon, char * message)
-{
-    portalSet(pigeon->pigeonPortal, "error", message);
 }
 
 // }}}

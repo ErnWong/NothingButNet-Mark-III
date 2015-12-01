@@ -87,7 +87,7 @@ void
 portalDisable(Portal*);
 
 void
-portalMutexTake(Portal*, unsigned long blockTime);
+portalMutexTake(Portal*, const unsigned long blockTime);
 
 void
 portalMutexGive(Portal*);

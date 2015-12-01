@@ -5,6 +5,10 @@
 #include "utils.h"
 
 
+
+
+// Constants {{{
+
 const float SHIM_DEGREES_PER_REV = 360.0f;
 const float SHIM_RADIANS_PER_REV = TAU;
 
@@ -17,6 +21,13 @@ const float ENCODER_GEARING_IME_269 = 30.056f;
 const float ENCODER_GEARING_IME_393_TORQUE = 39.2f;
 const float ENCODER_GEARING_IME_393_SPEED = 24.5f;
 
+// }}}
+
+
+
+
+// Encoder Shims - encoder {{{
+
 typedef struct
 EncoderShim
 {
@@ -26,6 +37,7 @@ EncoderShim
     Mutex mutex;
 }
 EncoderShim;
+
 
 EncoderReading
 encoderGetter(EncoderHandle handle)
@@ -53,6 +65,7 @@ encoderGetter(EncoderHandle handle)
     return reading;
 }
 
+
 void
 encoderResetter(EncoderHandle handle)
 {
@@ -62,6 +75,7 @@ encoderResetter(EncoderHandle handle)
     encoderReset(shim->encoder);
     mutexGive(shim->mutex);
 }
+
 
 EncoderHandle
 encoderGetHandle(Encoder encoder)
@@ -74,6 +88,13 @@ encoderGetHandle(Encoder encoder)
     return shim;
 }
 
+// }}}
+
+
+
+
+// Encoder shims - IME {{{
+
 typedef struct
 ImeShim
 {
@@ -83,6 +104,7 @@ ImeShim
     Mutex mutex;
 }
 ImeShim;
+
 
 EncoderReading
 imeGetter(EncoderHandle handle)
@@ -115,6 +137,7 @@ imeGetter(EncoderHandle handle)
     return reading;
 }
 
+
 void
 imeResetter(EncoderHandle handle)
 {
@@ -129,6 +152,7 @@ imeResetter(EncoderHandle handle)
     }
     mutexGive(shim->mutex);
 }
+
 
 EncoderHandle
 imeGetHandle(unsigned char address, MotorType type)
@@ -154,6 +178,13 @@ imeGetHandle(unsigned char address, MotorType type)
     return shim;
 }
 
+// }}}
+
+
+
+
+// Motor shims - motor {{{
+
 typedef struct
 MotorShim
 {
@@ -162,6 +193,7 @@ MotorShim
     Mutex mutex;
 }
 MotorShim;
+
 
 void
 motorSetter(MotorHandle handle, int command)
@@ -173,6 +205,7 @@ motorSetter(MotorHandle handle, int command)
     mutexGive(shim->mutex);
 }
 
+
 MotorHandle
 motorGetHandle(unsigned char channel, bool reversed)
 {
@@ -183,6 +216,13 @@ motorGetHandle(unsigned char channel, bool reversed)
     return shim;
 }
 
+// }}}
+
+
+
+
+// Digital shims - digital {{{
+
 typedef struct
 DigitalShim
 {
@@ -191,6 +231,7 @@ DigitalShim
     Mutex mutex;
 }
 DigitalShim;
+
 
 bool
 digitalGetter(DigitalHandle handle)
@@ -205,6 +246,7 @@ digitalGetter(DigitalHandle handle)
     return shim->negate != value;
 }
 
+
 DigitalHandle
 digitalGetHandle(unsigned char port, bool negate)
 {
@@ -216,6 +258,13 @@ digitalGetHandle(unsigned char port, bool negate)
     return shim;
 }
 
+// }}}
+
+
+
+
+// Digital shims - encoder range {{{
+
 typedef struct
 EncoderRangeShim
 {
@@ -226,6 +275,7 @@ EncoderRangeShim
     Mutex mutex;
 }
 EncoderRangeShim;
+
 
 bool
 encoderRangeGetter(DigitalHandle handle)
@@ -240,6 +290,7 @@ encoderRangeGetter(DigitalHandle handle)
     return shim->lower <= degrees && degrees <= shim->upper;
 }
 
+
 DigitalHandle
 encoderRangeGetHandle(EncoderGetter encoderGetter, EncoderHandle encoder, float upper, float lower)
 {
@@ -252,3 +303,5 @@ encoderRangeGetHandle(EncoderGetter encoderGetter, EncoderHandle encoder, float 
 
     return shim;
 }
+
+// }}}
