@@ -6,6 +6,7 @@
 
 #define UNUSED(x) (void)(x)
 
+static void setFwTarget();
 static void turnOnFlywheelShortRange(void*);
 static void turnOnFlywheelLongRange(void*);
 static void turnOffFlywheel(void*);
@@ -70,13 +71,26 @@ void operatorControl()
 }
 
 static void
+setFwTarget()
+{
+    float targetAbove = 0.0f;
+    float targetBelow = 0.0f;
+    if (isFwOn)
+    {
+        targetAbove = fwAbovePresets[fwPresetMode];
+        targetBelow = fwBelowPresets[fwPresetMode];
+    }
+    flywheelSet(fwAbove, targetAbove);
+    flywheelSet(fwBelow, targetBelow);
+}
+
+static void
 turnOnFlywheelLongRange(void * handle)
 {
     UNUSED(handle);
     isFwOn = true;
     fwPresetMode = FLYWHEEL_LONGRANGE;
-    flywheelSet(fwAbove, fwAbovePresets[FLYWHEEL_LONGRANGE]);
-    flywheelSet(fwBelow, fwBelowPresets[FLYWHEEL_LONGRANGE]);
+    setFwTarget();
 }
 
 static void
@@ -85,8 +99,7 @@ turnOnFlywheelShortRange(void * handle)
     UNUSED(handle);
     isFwOn = true;
     fwPresetMode = FLYWHEEL_SHORTRANGE;
-    flywheelSet(fwAbove, fwAbovePresets[FLYWHEEL_SHORTRANGE]);
-    flywheelSet(fwBelow, fwBelowPresets[FLYWHEEL_SHORTRANGE]);
+    setFwTarget();
 }
 
 static void
@@ -95,11 +108,7 @@ increaseFwRpm(void * handle)
     UNUSED(handle);
     fwAbovePresets[fwPresetMode] += 1.0f;
     fwBelowPresets[fwPresetMode] += 1.0f;
-    if (isFwOn)
-    {
-        flywheelSet(fwAbove, fwAbovePresets[fwPresetMode]);
-        flywheelSet(fwBelow, fwBelowPresets[fwPresetMode]);
-    }
+    setFwTarget();
 }
 
 static void
@@ -108,18 +117,15 @@ decreaseFwRpm(void * handle)
     UNUSED(handle);
     fwAbovePresets[fwPresetMode] -= 1.0f;
     fwBelowPresets[fwPresetMode] -= 1.0f;
-    if (isFwOn)
-    {
-        flywheelSet(fwAbove, fwAbovePresets[fwPresetMode]);
-        flywheelSet(fwBelow, fwBelowPresets[fwPresetMode]);
-    }
+    setFwTarget();
 }
 
 static void
 turnOffFlywheel(void * handle)
 {
     UNUSED(handle);
-    flywheelSet(fwAbove, 0);
+    isFwOn = false;
+    setFwTarget();
 }
 
 static void
