@@ -20,8 +20,8 @@ static void decreaseFwRpm(void*);
 typedef enum
 FlywheelPreset
 {
-    FLYWHEEL_SHORTRANGE;
-    FLYWHEEL_LONGRANGE;
+    FLYWHEEL_SHORTRANGE,
+    FLYWHEEL_LONGRANGE
 }
 FlywheelPreset;
 
