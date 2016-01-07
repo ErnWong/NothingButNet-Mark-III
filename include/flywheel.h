@@ -36,6 +36,7 @@ FlywheelSetup
 
     float gearing;
     float smoothing;
+    float slew;
 
     ControlSetup controlSetup;
     ControlUpdater controlUpdater;

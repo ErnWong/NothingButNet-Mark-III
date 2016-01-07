@@ -24,9 +24,11 @@ struct Flywheel
     ControlHandle control;
 
     float measuredRaw;
+    float command;
 
     float gearing;
     float smoothing;
+    float slew;
     EncoderGetter encoderGet;
     EncoderResetter encoderReset;
     EncoderHandle encoder;
@@ -95,6 +97,7 @@ flywheelInit(FlywheelSetup setup)
     flywheel->system.derivative = 0.0f;
     flywheel->system.error = 0.0f;
     flywheel->system.action = 0.0f;
+    flywheel->command = 0.0f;
 
     flywheel->controlUpdate = setup.controlUpdater;
     flywheel->controlReset = setup.controlResetter;
@@ -103,6 +106,7 @@ flywheelInit(FlywheelSetup setup)
 
     flywheel->gearing = setup.gearing;
     flywheel->smoothing = setup.smoothing;
+    flywheel->slew = setup.slew;
     flywheel->encoderGet = setup.encoderGetter;
     flywheel->encoderReset = setup.encoderResetter;
     flywheel->encoder = setup.encoder;
@@ -301,10 +305,18 @@ updateControl(Flywheel * flywheel)
 static void
 updateMotor(Flywheel * flywheel)
 {
+    if (flywheel->command < flywheel->system.action)
+    {
+        flywheel->command += flywheel->slew * flywheel->system.dt;
+    }
+    else if (flywheel->command > flywheel->system.action)
+    {
+        flywheel->command -= flywheel->slew * flywheel->system.dt;
+    }
     for (int i = 0; flywheel->motorSet[i] && i < 8; i++)
     {
         MotorHandle handle = flywheel->motors[i];
-        int command = flywheel->system.action;
+        int command = flywheel->command;
         flywheel->motorSet[i](handle, command);
     }
 }
