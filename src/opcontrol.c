@@ -10,8 +10,8 @@ static void setFwTarget();
 static void turnOnFlywheelShortRange(void*);
 static void turnOnFlywheelLongRange(void*);
 static void turnOffFlywheel(void*);
-static void turnOnConveyor(void*);
-static void turnOffConveyor(void*);
+static void toggleUpConveyor(void*);
+static void toggleDownConveyor(void*);
 static void openFlap(void*);
 static void closeFlap(void*);
 static void changeDriveStyle(void*);
@@ -28,15 +28,26 @@ FlywheelPreset;
 
 float fwAbovePresets[2] =
 {
-    1.0f,
-    2.0f
+    100.0f,
+    300.0f
 };
 
 float fwBelowPresets[2] =
 {
-    1.0f,
-    2.0f
+    500.0f,
+    800.0f
 };
+
+typedef enum
+ConveyorState
+{
+    CONVEYOR_UP,
+    CONVEYOR_DOWN,
+    CONVEYOR_OFF
+}
+ConveyorState;
+
+ConveyorState conveyorState = CONVEYOR_OFF;
 
 bool isFwOn = false;
 FlywheelPreset fwPresetMode = FLYWHEEL_LONGRANGE;
@@ -44,8 +55,8 @@ FlywheelPreset fwPresetMode = FLYWHEEL_LONGRANGE;
 void operatorControl()
 {
     buttonsInit();
-    buttonOndown(JOY_SLOT1, JOY_5U, turnOnConveyor, NULL);
-    buttonOndown(JOY_SLOT1, JOY_5D, turnOffConveyor, NULL);
+    buttonOndown(JOY_SLOT1, JOY_5U, toggleUpConveyor, NULL);
+    buttonOndown(JOY_SLOT1, JOY_5D, toggleDownConveyor, NULL);
     buttonOndown(JOY_SLOT1, JOY_6U, openFlap, NULL);
     buttonOndown(JOY_SLOT1, JOY_6D, closeFlap, NULL);
     buttonOndown(JOY_SLOT1, JOY_7U, changeDriveStyle, NULL);
@@ -106,8 +117,8 @@ static void
 increaseFwRpm(void * handle)
 {
     UNUSED(handle);
-    fwAbovePresets[fwPresetMode] += 1.0f;
-    fwBelowPresets[fwPresetMode] += 1.0f;
+    fwAbovePresets[fwPresetMode] += 10.0f;
+    fwBelowPresets[fwPresetMode] += 10.0f;
     setFwTarget();
 }
 
@@ -115,8 +126,8 @@ static void
 decreaseFwRpm(void * handle)
 {
     UNUSED(handle);
-    fwAbovePresets[fwPresetMode] -= 1.0f;
-    fwBelowPresets[fwPresetMode] -= 1.0f;
+    fwAbovePresets[fwPresetMode] -= 10.0f;
+    fwBelowPresets[fwPresetMode] -= 10.0f;
     setFwTarget();
 }
 
@@ -129,17 +140,35 @@ turnOffFlywheel(void * handle)
 }
 
 static void
-turnOnConveyor(void * handle)
+toggleUpConveyor(void * handle)
 {
     UNUSED(handle);
-    motorSet(8, 127);
+    if (conveyorState == CONVEYOR_UP)
+    {
+        conveyorState = CONVEYOR_OFF;
+        motorSet(8, 0);
+    }
+    else
+    {
+        conveyorState = CONVEYOR_UP;
+        motorSet(8, 127);
+    }
 }
 
 static void
-turnOffConveyor(void * handle)
+toggleDownConveyor(void * handle)
 {
     UNUSED(handle);
-    motorSet(8, 0);
+    if (conveyorState == CONVEYOR_DOWN)
+    {
+        conveyorState = CONVEYOR_OFF;
+        motorSet(8, 0);
+    }
+    else
+    {
+        conveyorState = CONVEYOR_DOWN;
+        motorSet(8, -127);
+    }
 }
 
 static void
