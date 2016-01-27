@@ -80,7 +80,7 @@ void initialize()
         },
         .motors =
         {
-            motorGetHandle(2, true),
+            motorGetHandle(2, false),
             motorGetHandle(3, true)
         },
 
