@@ -147,7 +147,7 @@ tbhUpdate(ControlHandle handle, ControlSystem * system)
     Tbh * tbh = handle;
     system->action -= system->error * system->dt * tbh->gain;
 
-    // TODO: this never equals, use range instead
+    // Detect when a new target is set
     if (system->target != tbh->lastTarget)
     {
         tbh->crossed = false;
