@@ -26,8 +26,11 @@ unsigned char fwBelowLED = 7;
 unsigned char fwAboveLED = 8;
 
 static float fwAboveEstimator(float target);
+static float fwBelowEstimator(float target);
 static void fwAboveReadied(void*);
+static void fwBelowReadied(void*);
 static void fwAboveActivated(void*);
+static void fwBelowActivated(void*);
 static char * pigeonGets(char * buffer, int maxSize);
 static void pigeonPuts(const char * message);
 
@@ -67,7 +70,7 @@ void initialize()
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
         .controlResetter = tbhReset,
-        .control = tbhInit(0.2, fwAboveEstimator),
+        .control = tbhInit(0.2, fwBelowEstimator),
 
         .encoderGetter = encoderGetter,
         .encoderResetter = encoderResetter,
@@ -91,7 +94,12 @@ void initialize()
 
         .thresholdError = 10.0f,
         .thresholdDerivative = 100.0f,
-        .checkCycle = 20
+        .checkCycle = 20,
+
+        .onready = fwBelowReadied,
+        .onreadyHandle = NULL
+        .onactive = fwBelowActivated,
+        .onactiveHandle = NULL,
     };
     fwBelow = flywheelInit(fwBelowSetup);
 
@@ -231,6 +239,12 @@ fwAboveEstimator(float target)
     return 18.195f + 2.2052e-5f * target * target;
 }
 
+static float
+fwBelowEstimator(float target)
+{
+    return 18.195f + 2.2052e-5f * target * target;
+}
+
 static void
 fwAboveReadied(void * handle)
 {
@@ -243,6 +257,20 @@ fwAboveActivated(void * handle)
 {
     UNUSED(handle);
     digitalWrite(fwAboveLED, LOW);
+}
+
+static void
+fwBelowReadied(void * handle)
+{
+    UNUSED(handle);
+    digitalWrite(fwBelowLED, HIGH);
+}
+
+static void
+fwBelowActivated(void * handle)
+{
+    UNUSED(handle);
+    digitalWrite(fwBelowLED, LOW);
 }
 
 static char *
