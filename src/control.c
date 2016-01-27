@@ -173,6 +173,16 @@ tbhUpdate(ControlHandle handle, ControlSystem * system)
         tbh->lastAction = system->action;
         portalUpdate(tbh->portal, "last-action");
     }
+
+    // Prevent floating zero-rpm commands
+    // NOTE: doesn't work if target=0 requires nonzero command.
+    // However, you shouldn't be doing that in the first place =P
+    // (because that drains current when motor is stalled)
+    if (system->target == 0 && system->error == 0)
+    {
+        system->action = 0;
+    }
+
     tbh->lastError = system->error;
     portalUpdate(tbh->portal, "last-error");
     return system->action;
