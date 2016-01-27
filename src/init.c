@@ -70,7 +70,16 @@ void initialize()
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
         .controlResetter = tbhReset,
-        .control = tbhInit(0.2, fwBelowEstimator),
+        .control = tbhInit(
+                (TbhConfig)
+                {
+                    .gain = 0.2,
+                    .slewPositive = 100.0f,
+                    .slewNegative = 10.0f,
+                    .estimator = fwBelowEstimator
+                }
+            ),
+        //.control = tbhInit(0.2, fwBelowEstimator),
 
         .encoderGetter = encoderGetter,
         .encoderResetter = encoderResetter,
@@ -97,9 +106,9 @@ void initialize()
         .checkCycle = 20,
 
         .onready = fwBelowReadied,
-        .onreadyHandle = NULL
+        .onreadyHandle = NULL,
         .onactive = fwBelowActivated,
-        .onactiveHandle = NULL,
+        .onactiveHandle = NULL
     };
     fwBelow = flywheelInit(fwBelowSetup);
 
@@ -115,7 +124,16 @@ void initialize()
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
         .controlResetter = tbhReset,
-        .control = tbhInit(0.2, fwAboveEstimator),
+        .control = tbhInit(
+                (TbhConfig)
+                {
+                    .gain = 0.2,
+                    .slewPositive = 100.0f,
+                    .slewNegative = 10.0f,
+                    .estimator = fwAboveEstimator
+                }
+            ),
+        //.control = tbhInit(0.2, fwAboveEstimator),
 
         .encoderGetter = encoderGetter,
         .encoderResetter = encoderResetter,

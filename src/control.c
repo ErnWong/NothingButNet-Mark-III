@@ -109,6 +109,8 @@ Tbh
     Portal * portal;
     TbhEstimator estimator;
     float gain;
+    float slewPositive;
+    float slewNegative;
     float lastAction;
     float lastError;
     float lastTarget;
@@ -117,12 +119,14 @@ Tbh
 Tbh;
 
 ControlHandle
-tbhInit(float gain, TbhEstimator estimator)
+tbhInit(TbhConfig config)
 {
     Tbh * tbh = malloc(sizeof(Tbh));
     tbh->portal = NULL;
-    tbh->estimator = estimator;
-    tbh->gain = gain;
+    tbh->estimator = config.estimator;
+    tbh->gain = config.gain;
+    tbh->slewPositive = config.slewPositive;
+    tbh->slewNegative = config.slewNegative;
     tbhReset(tbh);
     return tbh;
 }
@@ -145,7 +149,13 @@ float
 tbhUpdate(ControlHandle handle, ControlSystem * system)
 {
     Tbh * tbh = handle;
-    system->action -= system->error * system->dt * tbh->gain;
+
+    // Proportionally integral feedback
+    float actionDiff = -system->error * tbh->gain;
+    // Clip
+    if (actionDiff > tbh->slewPositive) actionDiff = tbh->slewPositive;
+    else if (actionDiff < -tbh->slewNegative) actionDiff = -tbh->slewNegative;
+    system->action += actionDiff * system->dt;
 
     // Detect when a new target is set
     if (system->target != tbh->lastTarget)

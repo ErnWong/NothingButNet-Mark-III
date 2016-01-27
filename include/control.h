@@ -48,8 +48,18 @@ pidUpdate(ControlHandle, ControlSystem*);
 void
 pidSetup(ControlHandle, Portal*);
 
+typedef struct
+TbhConfig
+{
+    float gain;
+    float slewPositive;
+    float slewNegative;
+    TbhEstimator estimator;
+}
+TbhConfig;
+
 ControlHandle
-tbhInit(float gain, TbhEstimator);
+tbhInit(TbhConfig);
 
 void
 tbhReset(ControlHandle);
