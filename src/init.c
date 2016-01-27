@@ -65,7 +65,6 @@ void initialize()
 
         .gearing = 25.0f,
         .smoothing = 0.2f,
-        .slew = 10.0f,
 
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
@@ -119,7 +118,6 @@ void initialize()
 
         .gearing = 25.0f,
         .smoothing = 0.2f,
-        .slew = 10.0f,
 
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
