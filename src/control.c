@@ -155,8 +155,11 @@ tbhUpdate(ControlHandle handle, ControlSystem * system)
         portalUpdate(tbh->portal, "crossed");
         portalUpdate(tbh->portal, "last-target");
     }
+
+    // Detect crossovers
     if (signOf(system->error) != signOf(tbh->lastError))
     {
+        // Detect first crossover
         if (!tbh->crossed)
         {
             system->action = tbh->estimator(system->target);
