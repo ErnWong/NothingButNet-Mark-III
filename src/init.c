@@ -64,7 +64,7 @@ void initialize()
         .pigeon = pigeon,
 
         .gearing = 25.0f,
-        .smoothing = 0.2f,
+        .smoothing = 0.5f,
 
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
@@ -72,7 +72,7 @@ void initialize()
         .control = tbhInit(
                 (TbhConfig)
                 {
-                    .gain = 0.2,
+                    .gain = 0.1,
                     .slewPositive = 100.0f,
                     .slewNegative = 10.0f,
                     .estimator = fwBelowEstimator
@@ -97,7 +97,7 @@ void initialize()
 
         .priorityReady = 2,
         .priorityActive = 2,
-        .frameDelayReady = 200,
+        .frameDelayReady = 60,
         .frameDelayActive = 60,
 
         .thresholdError = 10.0f,
@@ -117,7 +117,7 @@ void initialize()
         .pigeon = pigeon,
 
         .gearing = 25.0f,
-        .smoothing = 0.2f,
+        .smoothing = 0.5f,
 
         .controlSetup = tbhSetup,
         .controlUpdater = tbhUpdate,
@@ -125,7 +125,7 @@ void initialize()
         .control = tbhInit(
                 (TbhConfig)
                 {
-                    .gain = 0.2,
+                    .gain = 0.1,
                     .slewPositive = 100.0f,
                     .slewNegative = 10.0f,
                     .estimator = fwAboveEstimator
@@ -150,7 +150,7 @@ void initialize()
 
         .priorityReady = 2,
         .priorityActive = 2,
-        .frameDelayReady = 200,
+        .frameDelayReady = 60,
         .frameDelayActive = 60,
 
         .thresholdError = 10.0f,
