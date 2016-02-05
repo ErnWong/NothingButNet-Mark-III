@@ -188,7 +188,8 @@ tbhUpdate(ControlHandle handle, ControlSystem * system)
     // NOTE: doesn't work if target=0 requires nonzero command.
     // However, you shouldn't be doing that in the first place =P
     // (because that drains current when motor is stalled)
-    if (system->target == 0 && system->error == 0)
+    bool errorNearZero = system->error > -1.0f && system->error < 1.0f;
+    if (system->target == 0.0f && errorNearZero)
     {
         system->action = 0;
     }
