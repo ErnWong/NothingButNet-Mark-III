@@ -215,7 +215,7 @@ task(void * flywheelPointer)
         while (i)
         {
             update(flywheel);
-            //printDebugInfo(flywheel);
+            printDebugInfo(flywheel);
             delay(flywheel->frameDelay);
             --i;
         }
@@ -229,9 +229,13 @@ task(void * flywheelPointer)
 static void
 printDebugInfo(Flywheel * flywheel)
 {
-    printf("flywheel rpm: %f\n", flywheel->system.measured);
-    printf("flywheel action: %f\n", flywheel->system.action);
-    printf("flywheel raw: %f\n", flywheel->measuredRaw);
+    // for (int i = 0; flywheel->motorSet[i] && i < 8; i++)
+    // {
+    //     printf("flywheel m%d reversed: %s\n",
+    // }
+    // printf("flywheel rpm: %f\n", flywheel->system.measured);
+    // printf("flywheel action: %f\n", flywheel->system.action);
+    // printf("flywheel raw: %f\n", flywheel->measuredRaw);
 }
 
 
@@ -305,6 +309,7 @@ updateMotor(Flywheel * flywheel)
     for (int i = 0; flywheel->motorSet[i] && i < 8; i++)
     {
         MotorHandle handle = flywheel->motors[i];
+        printf("Flywheel motor #%d:\n", i);
         flywheel->motorSet[i](handle, command);
     }
 }

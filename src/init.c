@@ -258,7 +258,7 @@ fwAboveEstimator(float target)
 static float
 fwBelowEstimator(float target)
 {
-    return 18.195f + 2.2052e-5f * target * target;
+    return 0.038f * target;
 }
 
 static void

@@ -29,13 +29,13 @@ FlywheelPreset;
 float fwAbovePresets[2] =
 {
     100.0f,
-    300.0f
+    1500.0f
 };
 
 float fwBelowPresets[2] =
 {
-    500.0f,
-    800.0f
+    1500.0f,
+    2000.0f
 };
 
 typedef enum

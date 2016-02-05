@@ -168,6 +168,7 @@ motorSetter(MotorHandle handle, int command)
 {
     MotorShim * shim = handle;
     mutexTake(shim->mutex, -1);
+    printf(" - reversed: %s\n", shim->reversed? "yes" : "no");
     if (shim->reversed) command *= -1;
     motorSet(shim->channel, command);
     mutexGive(shim->mutex);

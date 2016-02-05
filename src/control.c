@@ -166,16 +166,34 @@ tbhUpdate(ControlHandle handle, ControlSystem * system)
         portalUpdate(tbh->portal, "last-target");
     }
 
-    // Detect crossovers
-    if (signOf(system->error) != signOf(tbh->lastError))
+    // Detect first +ve overshoot before it happens
+    if (!tbh->crossed && system->error < 0.0f && system->error > -0.5f*system->target)
     {
+        system->action = tbh->estimator(system->target);
+        tbh->crossed = true;
+    }
+
+    // Detect crossovers
+    else if (signOf(system->error) != signOf(tbh->lastError))
+    {
+        if (!tbh->crossed)
+        {
+            tbh->crossed = true;
+            portalUpdate(tbh->portal, "crossed");
+        }
         // Detect first crossover
+        /*
         if (!tbh->crossed)
         {
             system->action = tbh->estimator(system->target);
             tbh->crossed = true;
             portalUpdate(tbh->portal, "crossed");
         }
+        else
+        {
+            system->action = 0.5f * (system->action + tbh->lastAction);
+        }
+        */
         else
         {
             system->action = 0.5f * (system->action + tbh->lastAction);
