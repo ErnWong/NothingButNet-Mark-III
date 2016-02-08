@@ -8,6 +8,15 @@
 #include "pigeon.h"
 #include "utils.h"
 
+typedef enum
+DiffsteerMode
+{
+    DIFFSTEER_IDLE,
+    DIFFSTEER_ROTATING,
+    DIFFSTEER_MOVING
+}
+DiffsteerMode;
+
 struct Diffsteer
 {
     Portal * portal;

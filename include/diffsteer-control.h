@@ -14,15 +14,6 @@ extern "C" {
 struct Diffsteer;
 typedef struct Diffsteer Diffsteer;
 
-typedef enum
-DiffsteerMode
-{
-    DIFFSTEER_IDLE,
-    DIFFSTEER_ROTATING,
-    DIFFSTEER_MOVING
-}
-DiffsteerMode;
-
 typedef struct
 DiffsteerSetup
 {
