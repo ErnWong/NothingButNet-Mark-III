@@ -28,6 +28,10 @@ struct Diffsteer
     float targetY;
     float targetHeading;
 
+    bool ready;
+    float thresholdDistance;
+    float thresholdHeading;
+
     float gainDistance;
     float gainHeading;
 
@@ -37,6 +41,7 @@ struct Diffsteer
     MotorHandle motorRight;
 
     Mutex mutex;
+    Semaphore readySemaphore;
 };
 
 static void updateRotate(Diffsteer*);
@@ -58,6 +63,10 @@ diffsteerInit(DiffsteerSetup setup)
     d->targetY = 0.0f;
     d->targetHeading = 0.0f;
 
+    d->ready = true;
+    d->thresholdDistance = setup.thresholdDistance;
+    d->thresholdHeading = setup.thresholdHeading;
+
     d->gainDistance = setup.gainDistance;
     d->gainHeading = setup.gainHeading;
 
@@ -67,6 +76,7 @@ diffsteerInit(DiffsteerSetup setup)
     d->motorRight = setup.motorRight;
 
     d->mutex = mutexCreate();
+    d->readySemaphore = semaphoreCreate();
 
     return d;
 }
@@ -76,6 +86,7 @@ diffsteerRotate(Diffsteer * d, float heading)
 {
     mutexTake(d->mutex, -1);
     d->mode = DIFFSTEER_ROTATING;
+    d->ready = false;
     heading = fmodf(heading + PI, TAU) - PI;
     d->targetHeading = heading;
     mutexGive(d->mutex);
@@ -86,6 +97,7 @@ diffsteerMove(Diffsteer * d, float x, float y)
 {
     mutexTake(d->mutex, -1);
     d->mode = DIFFSTEER_MOVING;
+    d->ready = false;
     d->targetX = x;
     d->targetY = y;
     mutexGive(d->mutex);
@@ -96,6 +108,7 @@ diffsteerStop(Diffsteer * d)
 {
     mutexTake(d->mutex, -1);
     d->mode = DIFFSTEER_IDLE;
+    d->ready = true;
     mutexGive(d->mutex);
 }
 
@@ -118,6 +131,13 @@ diffsteerUpdate(Diffsteer * d)
     mutexGive(d->mutex);
 }
 
+void
+waitUntilDiffsteerReady(Diffsteer * d, const unsigned long blockTime)
+{
+    if (d->ready) return;
+    semaphoreTake(d->readySemaphore, blockTime);
+}
+
 static void
 updateRotate(Diffsteer * d)
 {
@@ -126,6 +146,14 @@ updateRotate(Diffsteer * d)
 
     d->motorLeftSet(d->motorLeft, -(int)command);
     d->motorRightSet(d->motorRight, (int)command);
+
+    bool isReady = -d->thresholdHeading <= errorHeading;
+    isReady &= errorHeading <= d->thresholdHeading;
+    if (isReady && !d->ready)
+    {
+        d->ready = true;
+        semaphoreGive(d->readySemaphore);
+    }
 }
 
 static void
@@ -166,6 +194,14 @@ updateMove(Diffsteer * d)
 
     d->motorLeftSet(d->motorLeft, (int)commandLeft);
     d->motorRightSet(d->motorRight, (int)commandRight);
+
+    bool isReady = -d->thresholdDistance <= distance;
+    isReady &= distance <= d->thresholdDistance;
+    if (isReady && !d->ready)
+    {
+        d->ready = true;
+        semaphoreGive(d->readySemaphore);
+    }
 }
 
 static void

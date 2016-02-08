@@ -219,6 +219,9 @@ void initialize()
 
         .state = reckonerGetState(reckoner),
 
+        .thresholdDistance = 0.1f,
+        .thresholdHeading = 0.1f,
+
         .gainDistance = 1.0f,
         .gainHeading = 1.0f,
 

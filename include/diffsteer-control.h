@@ -22,6 +22,9 @@ DiffsteerSetup
 
     ReckonerState * state;
 
+    float thresholdDistance;
+    float thresholdHeading;
+
     float gainDistance;
     float gainHeading;
 
@@ -46,6 +49,9 @@ diffsteerStop(Diffsteer*);
 
 void
 diffsteerUpdate(Diffsteer*);
+
+void
+waitUntilDiffsteerReady(Diffsteer*, const unsigned long blockTime);
 
 
 
