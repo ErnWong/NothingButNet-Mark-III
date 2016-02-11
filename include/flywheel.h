@@ -80,6 +80,9 @@ flywheelRun(Flywheel * flywheel);
 void
 flywheelSet(Flywheel * flywheel, float rpm);
 
+bool
+flywheelIsReady(Flywheel * flywheel);
+
 void
 waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime);
 

@@ -190,6 +190,12 @@ flywheelRun(Flywheel * flywheel)
     }
 }
 
+bool
+flywheelIsReady(Flywheel * flywheel)
+{
+    return flywheel->ready;
+}
+
 void
 waitUntilFlywheelReady(Flywheel * flywheel, const unsigned long blockTime)
 {
