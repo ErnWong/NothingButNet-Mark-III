@@ -5,6 +5,7 @@
 #include "flywheel.h"
 
 #define UNUSED(x) (void)(x)
+#define THE_DURATION_TO_CONSIDER_THE_FLAPPY_BUTTON_AS_OVERRIDE 1000
 
 static void setFwTarget();
 static void turnOnFlywheelShortRange(void*);
@@ -12,11 +13,13 @@ static void turnOnFlywheelLongRange(void*);
 static void turnOffFlywheel(void*);
 static void toggleUpConveyor(void*);
 static void toggleDownConveyor(void*);
-static void openFlap(void*);
+static void openFlapOndown(void*);
+static void openFlapOnup(void*);
 static void closeFlap(void*);
 static void changeDriveStyle(void*);
 static void increaseFwRpm(void*);
 static void decreaseFwRpm(void*);
+static void checkThatFlappyThing();
 
 typedef enum
 FlywheelPreset
@@ -52,6 +55,9 @@ ConveyorState conveyorState = CONVEYOR_OFF;
 bool isFwOn = false;
 FlywheelPreset fwPresetMode = FLYWHEEL_LONGRANGE;
 
+bool isTheFlappyButtonPressed = false;
+unsigned long theTimeWhenTheFlappyButtonStartedToBeDown = 0;
+
 void operatorControl()
 {
     if (joystickGetDigital(1, 7, JOY_LEFT))
@@ -66,7 +72,8 @@ void operatorControl()
     buttonsInit();
     buttonOndown(JOY_SLOT1, JOY_5U, toggleUpConveyor, NULL);
     buttonOndown(JOY_SLOT1, JOY_5D, toggleDownConveyor, NULL);
-    buttonOndown(JOY_SLOT1, JOY_6U, openFlap, NULL);
+    buttonOndown(JOY_SLOT1, JOY_6U, openFlapOndown, NULL);
+    buttonOnup(JOY_SLOT1, JOY_6U, openFlapOnup, NULL);
     buttonOndown(JOY_SLOT1, JOY_6D, closeFlap, NULL);
     buttonOndown(JOY_SLOT1, JOY_7U, changeDriveStyle, NULL);
     buttonOndown(JOY_SLOT1, JOY_7R, turnOnFlywheelShortRange, NULL);
@@ -85,6 +92,7 @@ void operatorControl()
         buttonsUpdate();
         driveUpdate(drive);
         reckonerUpdate(reckoner);
+        checkThatFlappyThing();
         delay(20);
     }
     // Note: never exit
@@ -181,10 +189,18 @@ toggleDownConveyor(void * handle)
 }
 
 static void
-openFlap(void * handle)
+openFlapOndown(void * handle)
 {
     UNUSED(handle);
-    flapOpen(fwFlap);
+    isTheFlappyButtonPressed = true;
+    theTimeWhenTheFlappyButtonStartedToBeDown = millis();
+}
+
+static void
+openFlapOnup(void * handle)
+{
+    UNUSED(handle);
+    isTheFlappyButtonPressed = false;
 }
 
 static void
@@ -199,4 +215,20 @@ changeDriveStyle(void * handle)
 {
     UNUSED(handle);
     driveNext(drive);
+}
+
+static void
+checkThatFlappyThing()
+{
+    if (!isTheFlappyButtonPressed) return;
+
+    bool shouldOpenTheFlappyThing = millis() - theTimeWhenTheFlappyButtonStartedToBeDown > THE_DURATION_TO_CONSIDER_THE_FLAPPY_BUTTON_AS_OVERRIDE;
+    shouldOpenTheFlappyThing |= flywheelIsReady(fwBelow) && flywheelIsReady(fwAbove);
+
+    if (shouldOpenTheFlappyThing)
+    {
+        flapOpen(fwFlap);
+        isTheFlappyButtonPressed = false;
+        return;
+    }
 }
