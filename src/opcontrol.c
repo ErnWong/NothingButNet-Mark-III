@@ -82,12 +82,20 @@ void operatorControl()
     {
         if (joystickGetDigital(1, 7, JOY_LEFT))
         {
-            autonomous();
-            while (joystickGetDigital(1, 7, JOY_LEFT));
+            autonomousRun();
+
+            // Poll wait until button released and pressed again
+            // Note: buttonsUpdate is not called, so buttonOndown doesn't work
+            while (joystickGetDigital(1, 7, JOY_LEFT))
+            {
+                delay(100);
+            }
             while (!joystickGetDigital(1, 7, JOY_LEFT))
             {
                 delay(100);
             }
+
+            autonomousStop();
         }
 
         buttonsUpdate();

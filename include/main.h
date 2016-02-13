@@ -24,6 +24,12 @@ void initialize();
 void operatorControl();
 
 
+// Custom Competition:
+
+void autonomousRun();
+void autonomousStop();
+
+
 // Robot:
 
 extern Pigeon * pigeon;
