@@ -212,6 +212,16 @@ tbhSetup(ControlHandle handle, Portal * portal)
             .handle = &tbh->gain
         },
         {
+            .key = "slew-positive",
+            .handler = portalFloatHandler,
+            .handle = &tbh->slewPositive
+        },
+        {
+            .key = "slew-negative",
+            .handler = portalFloatHandler,
+            .handle = &tbh->slewNegative
+        },
+        {
             .key = "last-action",
             .handler = portalFloatHandler,
             .handle = &tbh->lastAction
