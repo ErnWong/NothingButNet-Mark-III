@@ -7,6 +7,7 @@
 #define UNUSED(x) (void)(x)
 #define THE_DURATION_TO_CONSIDER_THE_FLAPPY_BUTTON_AS_OVERRIDE 1000
 
+static void checkForAutonomous();
 static void setFwTarget();
 static void turnOnFlywheelShortRange(void*);
 static void turnOnFlywheelLongRange(void*);
@@ -80,24 +81,7 @@ void operatorControl()
 
     while (true)
     {
-        if (joystickGetDigital(1, 7, JOY_LEFT))
-        {
-            autonomousRun();
-
-            // Poll wait until button released and pressed again
-            // Note: buttonsUpdate is not called, so buttonOndown doesn't work
-            while (joystickGetDigital(1, 7, JOY_LEFT))
-            {
-                delay(100);
-            }
-            while (!joystickGetDigital(1, 7, JOY_LEFT))
-            {
-                delay(100);
-            }
-
-            autonomousStop();
-        }
-
+        checkForAutonomous();
         buttonsUpdate();
         driveUpdate(drive);
         reckonerUpdate(reckoner);
@@ -105,6 +89,28 @@ void operatorControl()
         delay(20);
     }
     // Note: never exit
+}
+
+static void
+checkForAutonomous()
+{
+    if (joystickGetDigital(1, 7, JOY_LEFT))
+    {
+        autonomousRun();
+
+        // Poll wait until button released and pressed again
+        // Note: buttonsUpdate is not called, so buttonOndown doesn't work
+        while (joystickGetDigital(1, 7, JOY_LEFT))
+        {
+            delay(100);
+        }
+        while (!joystickGetDigital(1, 7, JOY_LEFT))
+        {
+            delay(100);
+        }
+
+        autonomousStop();
+    }
 }
 
 static void
