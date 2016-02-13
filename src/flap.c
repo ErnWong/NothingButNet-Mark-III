@@ -282,6 +282,21 @@ initPortal(Flap * flap, FlapSetup setup)
             .handle = flap
         },
         {
+            .key = "slew",
+            .handler = portalFloatHandler,
+            .handle = &flap->slew
+        },
+        {
+            .key = "command",
+            .handler = portalFloatHandler,
+            .handle = &flap->command
+        },
+        {
+            .key = "high-command",
+            .handler = portalFloatHandler,
+            .handle = &flap->highCommand
+        },
+        {
             .key = "frame-delay",
             .handler = portalUlongHandler,
             .handle = &flap->frameDelay
