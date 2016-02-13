@@ -11,6 +11,7 @@ struct Flap
     Portal * portal;
 
     float slew;
+    float highCommand;
     float command;
     MotorSetter motorSet;
     MotorHandle motor;
@@ -56,6 +57,7 @@ flapInit(FlapSetup setup)
     initPortal(flap, setup);
 
     flap->slew = setup.slew;
+    flap->highCommand = setup.highCommand;
     flap->command = 0.0f;
 
     flap->motorSet = setup.motorSetter;
@@ -188,12 +190,12 @@ update(Flap * flap)
         {
             flap->state = FLAP_CLOSING;
             portalUpdate(flap->portal, "state");
-            flap->command = -127;
+            flap->command = -flap->highCommand;
             activate(flap);
         }
         break;
     case FLAP_OPENING:
-        flap->command = 127;
+        flap->command = flap->highCommand;
         if (isOpened)
         {
             flap->state = FLAP_OPENED;
@@ -215,12 +217,12 @@ update(Flap * flap)
         {
             flap->state = FLAP_OPENING;
             portalUpdate(flap->portal, "state");
-            flap->command = 127;
+            flap->command = flap->highCommand;
             activate(flap);
         }
         break;
     case FLAP_CLOSING:
-        flap->command = -127;
+        flap->command = -flap->highCommand;
         if (isClosed)
         {
             flap->state = FLAP_CLOSED;

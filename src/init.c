@@ -170,6 +170,7 @@ void initialize()
         .pigeon = pigeon,
 
         .slew = 1.0f,
+        .highCommand = 80.0f,
         .motorSetter = motorSetter,
         .motor = motorGetHandle(9, false),
         .digitalOpenedGetter = digitalGetter,

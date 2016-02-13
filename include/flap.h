@@ -30,6 +30,7 @@ FlapSetup
     Pigeon * pigeon;
 
     float slew;
+    float highCommand;
 
     MotorSetter motorSetter;
     MotorHandle motor;
