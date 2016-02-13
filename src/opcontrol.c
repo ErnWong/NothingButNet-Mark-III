@@ -227,7 +227,7 @@ checkThatFlappyThing()
 
     if (shouldOpenTheFlappyThing)
     {
-        flapOpen(fwFlap);
+        flapDrop(fwFlap);
         isTheFlappyButtonPressed = false;
         return;
     }
