@@ -60,15 +60,6 @@ unsigned long theTimeWhenTheFlappyButtonStartedToBeDown = 0;
 
 void operatorControl()
 {
-    if (joystickGetDigital(1, 7, JOY_LEFT))
-    {
-        autonomous();
-        while (!joystickGetDigital(1, 7, JOY_LEFT))
-        {
-            delay(100);
-        }
-    }
-
     buttonsInit();
     buttonOndown(JOY_SLOT1, JOY_5U, toggleUpConveyor, NULL);
     buttonOndown(JOY_SLOT1, JOY_5D, toggleDownConveyor, NULL);
@@ -89,6 +80,16 @@ void operatorControl()
 
     while (true)
     {
+        if (joystickGetDigital(1, 7, JOY_LEFT))
+        {
+            autonomous();
+            while (joystickGetDigital(1, 7, JOY_LEFT));
+            while (!joystickGetDigital(1, 7, JOY_LEFT))
+            {
+                delay(100);
+            }
+        }
+
         buttonsUpdate();
         driveUpdate(drive);
         reckonerUpdate(reckoner);
