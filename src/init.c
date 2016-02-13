@@ -43,6 +43,7 @@ void initializeIO()
     //  - Configure UART (usartOpen), but not LCD (lcdInit)
     pinMode(fwBelowLED, OUTPUT);
     pinMode(fwAboveLED, OUTPUT);
+    motorSet(8, 0);
 }
 
 void initialize()
@@ -100,9 +101,9 @@ void initialize()
         .frameDelayReady = 60,
         .frameDelayActive = 60,
 
-        .thresholdError = 10.0f,
-        .thresholdDerivative = 100.0f,
-        .checkCycle = 20,
+        .thresholdError = 30.0f,
+        .thresholdDerivative = 300.0f,
+        .checkCycle = 5,
 
         .onready = fwBelowReadied,
         .onreadyHandle = NULL,
@@ -153,9 +154,9 @@ void initialize()
         .frameDelayReady = 60,
         .frameDelayActive = 60,
 
-        .thresholdError = 10.0f,
-        .thresholdDerivative = 100.0f,
-        .checkCycle = 20,
+        .thresholdError = 30.0f,
+        .thresholdDerivative = 300.0f,
+        .checkCycle = 5,
 
         .onready = fwAboveReadied,
         .onreadyHandle = NULL,
@@ -185,7 +186,7 @@ void initialize()
         .priorityDrop = 2,
         .frameDelayReady = 20,
         .frameDelayActive = 20,
-        .dropDelay = 1000
+        .dropDelay = 500
     };
     fwFlap = flapInit(fwFlapSetup);
 
